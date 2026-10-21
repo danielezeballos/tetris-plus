@@ -6,8 +6,10 @@ import { getCells, type ActivePiece } from './tetromino';
 import type { PieceKind } from './constants';
 import { isDarkTheme } from '../theme';
 
-export const CELL = 36;
-const PREVIEW_CELL = Math.round(CELL * (22 / 28));
+/** Playfield cell size (10×20 visible rows). */
+export const CELL = 54.49;
+/** Preview size tracks the prior layout so the stats column height stays fixed. */
+const PREVIEW_CELL = 42;
 export const PREVIEW_CANVAS_SIZE = 4 * PREVIEW_CELL;
 
 function wellPalette() {
