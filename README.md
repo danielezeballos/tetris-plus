@@ -11,6 +11,8 @@ npm run dev
 
 Open [http://127.0.0.1:47281](http://127.0.0.1:47281) (dev server binds to `0.0.0.0:47281`).
 
+Shared leaderboards (all-time and today, UTC) are served from `GET /api/leaderboards` and updated with `POST /api/leaderboards` (`{ "score": number, "name"?: string }`). Scores persist in `data/leaderboards.json` during dev/preview.
+
 ## Build
 
 ```bash

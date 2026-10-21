@@ -18,6 +18,14 @@ import {
   themeToggleLabel,
   toggleTheme,
 } from './theme';
+import {
+  fetchLeaderboards,
+  formatLeaderboardRows,
+  MAX_NAME_LENGTH,
+  scoreQualifiesForSubmission,
+  submitLeaderboardScore,
+  type LeaderboardsView,
+} from './leaderboards';
 
 initTheme();
 initSound();
@@ -41,6 +49,30 @@ app.innerHTML = `
           <div class="overlay-card">
             <h2 id="overlay-title"></h2>
             <p id="overlay-body"></p>
+            <div id="name-prompt" class="name-prompt hidden">
+              <p class="name-prompt-label">Top 5 — your name</p>
+              <input
+                id="name-input"
+                class="name-input"
+                type="text"
+                maxlength="40"
+                autocomplete="name"
+                placeholder="Anonymous if blank"
+              />
+              <button type="button" id="name-submit" class="primary-btn name-submit">
+                Save score
+              </button>
+            </div>
+            <div id="leaderboards" class="leaderboards hidden">
+              <div class="lb-block">
+                <span class="lb-heading">All-time</span>
+                <ol id="lb-alltime" class="lb-list"></ol>
+              </div>
+              <div class="lb-block">
+                <span class="lb-heading">Today</span>
+                <ol id="lb-today" class="lb-list"></ol>
+              </div>
+            </div>
             <button type="button" id="overlay-btn" class="primary-btn"></button>
           </div>
         </div>
@@ -85,6 +117,12 @@ const overlay = document.querySelector<HTMLDivElement>('#overlay')!;
 const overlayTitle = document.querySelector<HTMLHeadingElement>('#overlay-title')!;
 const overlayBody = document.querySelector<HTMLParagraphElement>('#overlay-body')!;
 const overlayBtn = document.querySelector<HTMLButtonElement>('#overlay-btn')!;
+const namePrompt = document.querySelector<HTMLDivElement>('#name-prompt')!;
+const nameInput = document.querySelector<HTMLInputElement>('#name-input')!;
+const nameSubmit = document.querySelector<HTMLButtonElement>('#name-submit')!;
+const leaderboardsEl = document.querySelector<HTMLDivElement>('#leaderboards')!;
+const lbAllTime = document.querySelector<HTMLOListElement>('#lb-alltime')!;
+const lbToday = document.querySelector<HTMLOListElement>('#lb-today')!;
 const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle')!;
 const soundToggle = document.querySelector<HTMLButtonElement>('#sound-toggle')!;
 
@@ -118,6 +156,41 @@ for (let i = 0; i < 5; i++) {
   nextQueue.appendChild(c);
 }
 
+let boardsView: LeaderboardsView | null = null;
+let gameOverHandled = false;
+let pendingScoreSubmit = false;
+
+function renderLeaderboards(): void {
+  if (!boardsView) {
+    leaderboardsEl.classList.add('hidden');
+    return;
+  }
+  leaderboardsEl.classList.remove('hidden');
+  lbAllTime.innerHTML = formatLeaderboardRows(boardsView.allTime);
+  lbToday.innerHTML = formatLeaderboardRows(boardsView.today);
+}
+
+function setNamePromptVisible(visible: boolean): void {
+  namePrompt.classList.toggle('hidden', !visible);
+  if (visible) {
+    nameInput.value = '';
+    window.setTimeout(() => nameInput.focus(), 0);
+  }
+}
+
+async function handleGameOver(): Promise<void> {
+  const score = state.score;
+  try {
+    boardsView = await fetchLeaderboards();
+  } catch {
+    boardsView = { allTime: [], today: [] };
+  }
+  pendingScoreSubmit = scoreQualifiesForSubmission(boardsView, score);
+  setNamePromptVisible(pendingScoreSubmit);
+  renderLeaderboards();
+  updateOverlay();
+}
+
 function updateOverlay(): void {
   const { phase } = state;
   if (phase === 'playing') {
@@ -126,10 +199,14 @@ function updateOverlay(): void {
   }
   overlay.classList.remove('hidden');
   if (phase === 'start') {
+    leaderboardsEl.classList.add('hidden');
+    setNamePromptVisible(false);
     overlayTitle.textContent = 'tetris.plus';
     overlayBody.textContent = 'Clear lines to score. Speed increases every 10 lines.';
     overlayBtn.textContent = 'Start';
   } else if (phase === 'paused') {
+    leaderboardsEl.classList.add('hidden');
+    setNamePromptVisible(false);
     overlayTitle.textContent = 'Paused';
     overlayBody.textContent = '';
     overlayBtn.textContent = 'Resume';
@@ -137,6 +214,19 @@ function updateOverlay(): void {
     overlayTitle.textContent = 'Game over';
     overlayBody.textContent = `${state.score.toLocaleString()} points · level ${state.level}`;
     overlayBtn.textContent = 'Play again';
+    renderLeaderboards();
+  }
+}
+
+function onPhaseChange(): void {
+  if (state.phase === 'gameover' && !gameOverHandled) {
+    gameOverHandled = true;
+    void handleGameOver();
+  }
+  if (state.phase !== 'gameover') {
+    gameOverHandled = false;
+    pendingScoreSubmit = false;
+    setNamePromptVisible(false);
   }
 }
 
@@ -160,6 +250,7 @@ function renderHud(): void {
 function render(): void {
   drawWell(wellCanvas, state);
   renderHud();
+  onPhaseChange();
   updateOverlay();
 }
 
@@ -175,10 +266,38 @@ window.addEventListener('resize', () => {
   resizeTimer = window.setTimeout(fitViewport, 50);
 });
 
+async function savePendingScore(): Promise<void> {
+  if (!pendingScoreSubmit || state.phase !== 'gameover') return;
+  const score = state.score;
+  const name = nameInput.value.slice(0, MAX_NAME_LENGTH);
+  pendingScoreSubmit = false;
+  setNamePromptVisible(false);
+  try {
+    const result = await submitLeaderboardScore(score, name);
+    boardsView = result.boards;
+  } catch {
+    /* keep last fetched boards */
+  }
+  renderLeaderboards();
+}
+
+nameSubmit.addEventListener('click', () => {
+  void savePendingScore();
+});
+nameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    void savePendingScore();
+  }
+});
+
 overlayBtn.addEventListener('click', () => {
   if (state.phase === 'start') startGame(state);
   else if (state.phase === 'paused') togglePause(state);
-  else if (state.phase === 'gameover') startGame(state);
+  else if (state.phase === 'gameover') {
+    if (pendingScoreSubmit) void savePendingScore();
+    startGame(state);
+  }
 });
 
 bindKeyboard(state);
