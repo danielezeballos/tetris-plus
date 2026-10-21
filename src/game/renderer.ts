@@ -2,6 +2,7 @@ import { COLS, HIDDEN_ROWS, VISIBLE_ROWS, type PieceKind } from './constants';
 import { getPieceColor } from '../piece-colors';
 import type { GameState } from './engine';
 import { getGhostPiece } from './engine';
+import { lineClearProgress, type LineClearEffect } from './line-clear';
 import type { Cell } from './board';
 import { getCells, type ActivePiece } from './tetromino';
 import { isDarkTheme } from '../theme';
@@ -93,15 +94,63 @@ function drawPiece(
   }
 }
 
-function drawBoard(ctx: CanvasRenderingContext2D, board: Cell[][]): void {
+function clearingKeys(effect: LineClearEffect | null): Set<string> {
+  const keys = new Set<string>();
+  if (!effect) return keys;
+  for (const { x, y } of effect.cells) {
+    keys.add(`${x},${y}`);
+  }
+  return keys;
+}
+
+function drawVanishCell(
+  ctx: CanvasRenderingContext2D,
+  screenX: number,
+  screenY: number,
+  kind: PieceKind,
+  progress: number,
+): void {
+  const alpha = 1 - progress;
+  const scale = 1 - progress * 0.35;
+  const size = cellSize * scale;
+  const ox = screenX + (cellSize - size) / 2;
+  const oy = screenY + (cellSize - size) / 2;
+  const pad = Math.max(1, 2 * scale);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = getPieceColor(kind);
+  ctx.fillRect(ox + pad, oy + pad, size - pad * 2, size - pad * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
+  ctx.fillRect(ox + pad, oy + pad, size - pad * 2, 3 * scale);
+  ctx.restore();
+}
+
+function drawBoard(
+  ctx: CanvasRenderingContext2D,
+  board: Cell[][],
+  skip: Set<string>,
+): void {
   for (let y = HIDDEN_ROWS; y < HIDDEN_ROWS + VISIBLE_ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
+      if (skip.has(`${x},${y}`)) continue;
       const cell = board[y][x];
       const row = y - HIDDEN_ROWS;
       if (cell) {
         drawCell(ctx, x * cellSize, row * cellSize, cell, cellSize);
       }
     }
+  }
+}
+
+function drawLineClearEffect(
+  ctx: CanvasRenderingContext2D,
+  effect: LineClearEffect,
+): void {
+  const progress = lineClearProgress(effect);
+  for (const { x, y, kind } of effect.cells) {
+    const row = y - HIDDEN_ROWS;
+    if (row < 0 || row >= VISIBLE_ROWS) continue;
+    drawVanishCell(ctx, x * cellSize, row * cellSize, kind, progress);
   }
 }
 
@@ -140,7 +189,11 @@ export function drawWell(
   ctx.fillRect(0, 0, wellW, wellH);
 
   drawGrid(ctx);
-  drawBoard(ctx, state.board);
+  const skip = clearingKeys(state.lineClear);
+  drawBoard(ctx, state.board, skip);
+  if (state.lineClear) {
+    drawLineClearEffect(ctx, state.lineClear);
+  }
 
   const ghost = getGhostPiece(state);
   if (ghost && state.phase === 'playing') {

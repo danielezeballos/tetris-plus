@@ -3,11 +3,13 @@ import {
   clearLines,
   collides,
   createBoard,
+  findFullRows,
   ghostY,
   lockPiece,
   type Cell,
 } from './board';
 import {
+  COLS,
   gravityMs,
   HARD_DROP_SCORE,
   LINE_SCORES,
@@ -16,6 +18,7 @@ import {
   NEXT_QUEUE_SIZE,
   SOFT_DROP_SCORE,
 } from './constants';
+import { createLineClearEffect, type LineClearEffect } from './line-clear';
 import { getWallKicks, targetRotation } from './srs';
 import { spawnPiece, type ActivePiece } from './tetromino';
 import { sounds } from './audio';
@@ -37,6 +40,7 @@ export interface GameState {
   lockTimer: number;
   lockResets: number;
   onGround: boolean;
+  lineClear: LineClearEffect | null;
 }
 
 export function createInitialState(): GameState {
@@ -56,6 +60,7 @@ export function createInitialState(): GameState {
     lockTimer: 0,
     lockResets: 0,
     onGround: false,
+    lineClear: null,
   };
 }
 
@@ -88,6 +93,7 @@ export function startGame(state: GameState): void {
   state.level = 1;
   state.lines = 0;
   state.gravityAccumulator = 0;
+  state.lineClear = null;
   refreshQueue(state);
   if (!spawnFromQueue(state)) {
     state.phase = 'gameover';
@@ -115,17 +121,52 @@ function applyLineClear(state: GameState, cleared: number): void {
   }
 }
 
+function collectRowCells(
+  board: Cell[][],
+  rows: number[],
+): LineClearEffect['cells'] {
+  const cells: LineClearEffect['cells'] = [];
+  for (const y of rows) {
+    for (let x = 0; x < COLS; x++) {
+      const kind = board[y][x];
+      if (kind) cells.push({ x, y, kind });
+    }
+  }
+  return cells;
+}
+
+function finishSpawnAfterLock(state: GameState): void {
+  if (!spawnFromQueue(state)) {
+    state.phase = 'gameover';
+    sounds.gameOver();
+  }
+}
+
 function settlePiece(state: GameState): void {
   if (!state.active) return;
   lockPiece(state.board, state.active);
   sounds.lock();
-  const cleared = clearLines(state.board);
-  applyLineClear(state, cleared);
+  const fullRows = findFullRows(state.board);
   state.active = null;
   state.onGround = false;
-  if (!spawnFromQueue(state)) {
-    state.phase = 'gameover';
-    sounds.gameOver();
+  if (fullRows.length === 0) {
+    finishSpawnAfterLock(state);
+    return;
+  }
+  applyLineClear(state, fullRows.length);
+  state.lineClear = createLineClearEffect(
+    collectRowCells(state.board, fullRows),
+  );
+}
+
+export function advanceLineClear(state: GameState, dtMs: number): void {
+  if (!state.lineClear || state.phase !== 'playing') return;
+  state.lineClear.elapsed += dtMs;
+  if (state.lineClear.elapsed < state.lineClear.duration) return;
+  clearLines(state.board);
+  state.lineClear = null;
+  if (!state.active) {
+    finishSpawnAfterLock(state);
   }
 }
 
@@ -137,7 +178,7 @@ function resetLock(state: GameState): void {
 }
 
 export function tryMove(state: GameState, dx: number, dy: number): boolean {
-  if (state.phase !== 'playing' || !state.active) return false;
+  if (state.phase !== 'playing' || !state.active || state.lineClear) return false;
   if (collides(state.board, state.active, dx, dy)) return false;
   state.active.x += dx;
   state.active.y += dy;
@@ -159,7 +200,7 @@ export function tryRotate(
   state: GameState,
   dir: 'cw' | 'ccw' | '180',
 ): boolean {
-  if (state.phase !== 'playing' || !state.active) return false;
+  if (state.phase !== 'playing' || !state.active || state.lineClear) return false;
   const piece = state.active;
   if (piece.kind === 'O') {
     if (state.onGround) resetLock(state);
@@ -183,7 +224,7 @@ export function tryRotate(
 }
 
 export function hardDrop(state: GameState): void {
-  if (state.phase !== 'playing' || !state.active) return;
+  if (state.phase !== 'playing' || !state.active || state.lineClear) return;
   const gy = ghostY(state.board, state.active);
   const dist = gy - state.active.y;
   state.active.y = gy;
@@ -193,7 +234,8 @@ export function hardDrop(state: GameState): void {
 }
 
 export function holdPiece(state: GameState): void {
-  if (state.phase !== 'playing' || !state.active || !state.canHold) return;
+  if (state.phase !== 'playing' || !state.active || !state.canHold || state.lineClear)
+    return;
   const current = state.active.kind;
   sounds.hold();
   if (state.hold === null) {

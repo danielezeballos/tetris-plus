@@ -195,3 +195,8 @@ function loop(now: number): void {
 
 fitViewport();
 requestAnimationFrame(loop);
+
+if (import.meta.env.DEV) {
+  (globalThis as unknown as { __stackfall: { state: GameState } }).__stackfall =
+    { state };
+}

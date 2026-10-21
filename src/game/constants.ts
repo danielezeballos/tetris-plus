@@ -6,6 +6,7 @@ export const TOTAL_ROWS = VISIBLE_ROWS + HIDDEN_ROWS;
 export const NEXT_QUEUE_SIZE = 5;
 
 export const LOCK_DELAY_MS = 500;
+export const LINE_CLEAR_ANIM_MS = 160;
 export const MAX_LOCK_RESETS = 15;
 
 /** Delayed auto-shift for soft drop (unchanged). */

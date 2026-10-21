@@ -43,6 +43,14 @@ export function lockPiece(board: Cell[][], piece: ActivePiece): void {
   }
 }
 
+export function findFullRows(board: Cell[][]): number[] {
+  const rows: number[] = [];
+  for (let y = 0; y < TOTAL_ROWS; y++) {
+    if (board[y].every((c) => c !== null)) rows.push(y);
+  }
+  return rows;
+}
+
 export function clearLines(board: Cell[][]): number {
   let cleared = 0;
   for (let y = TOTAL_ROWS - 1; y >= 0; y--) {
