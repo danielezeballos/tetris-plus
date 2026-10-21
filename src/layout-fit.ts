@@ -24,6 +24,19 @@ function pageOverflows(): boolean {
   );
 }
 
+function footerClearOfGame(): boolean {
+  const foot = document.querySelector('.page-foot');
+  const well = document.getElementById('well');
+  const panel = document.querySelector('.panel-right');
+  if (!foot || !well || !panel) return false;
+  const footTop = foot.getBoundingClientRect().top;
+  const gameBottom = Math.max(
+    well.getBoundingClientRect().bottom,
+    panel.getBoundingClientRect().bottom,
+  );
+  return footTop >= gameBottom - 0.5;
+}
+
 export function syncPanelHeights(): void {
   const well = document.getElementById('well');
   const panel = document.querySelector<HTMLElement>('.panel-right');
@@ -64,7 +77,7 @@ function tryCell(cell: number, onApply: () => void): boolean {
   resizePreviewCanvases();
   onApply();
   syncPanelHeights();
-  return !pageOverflows() && panelContentFits();
+  return !pageOverflows() && panelContentFits() && footerClearOfGame();
 }
 
 /** Largest playfield cell size that fits the viewport with LINES at the well bottom. */
