@@ -12,8 +12,8 @@ export const MAX_LOCK_RESETS = 15;
 export const DAS_MS = 133;
 
 /** Left / right: delay before auto-repeat, then repeat interval (0 = every frame). */
-export const DAS_HORIZONTAL_MS = 124;
-export const ARR_HORIZONTAL_MS = 40;
+export const DAS_HORIZONTAL_MS = 130;
+export const ARR_HORIZONTAL_MS = 46;
 
 export const SOFT_DROP_SCORE = 1;
 export const HARD_DROP_SCORE = 2;
