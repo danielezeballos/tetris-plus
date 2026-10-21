@@ -3,7 +3,9 @@ import {
   clearLines,
   collides,
   createBoard,
+  findFullRows,
   ghostY,
+  removeLockedRows,
 } from './board';
 import { COLS, PIECE_KINDS, TOTAL_ROWS } from './constants';
 import type { ActivePiece } from './tetromino';
@@ -60,6 +62,55 @@ describe('collides', () => {
         }
       }
     }
+  });
+});
+
+describe('removeLockedRows', () => {
+  it('clears non-adjacent lock rows without deleting stacked cells above gaps', () => {
+    const board = createBoard();
+    board[14][3] = 'L';
+    board[15][3] = 'L';
+    for (let x = 0; x < COLS; x++) board[18][x] = 'I';
+    for (let x = 1; x < COLS; x++) board[19][x] = 'O';
+    for (let x = 0; x < COLS; x++) board[20][x] = 'T';
+
+    removeLockedRows(board, [18, 20]);
+
+    expect(findFullRows(board)).toEqual([]);
+    expect(board.some((row) => row[3] === 'L')).toBe(true);
+    const partialRow = board.find((row) => row[0] === null && row[1] === 'O');
+    expect(partialRow).toBeDefined();
+  });
+
+  it('removes only the rows recorded at lock time in one pass', () => {
+    const board = createBoard();
+    board[17][3] = 'L';
+    for (let x = 0; x < COLS; x++) {
+      board[18][x] = 'I';
+      board[19][x] = 'I';
+    }
+    board[20][5] = 'J';
+
+    removeLockedRows(board, [18, 19]);
+
+    expect(findFullRows(board)).toEqual([]);
+    expect(board[19][3]).toBe('L');
+    expect(board[20][5]).toBe('J');
+  });
+
+  it('drops rows above by exactly the number of cleared lines', () => {
+    const board = createBoard();
+    board[16][5] = 'J';
+    for (let x = 0; x < COLS; x++) {
+      board[TOTAL_ROWS - 2][x] = 'I';
+      board[TOTAL_ROWS - 1][x] = 'I';
+    }
+
+    removeLockedRows(board, [TOTAL_ROWS - 2, TOTAL_ROWS - 1]);
+
+    expect(board[18][5]).toBe('J');
+    expect(board[TOTAL_ROWS - 1].every((c) => c === null)).toBe(true);
+    expect(board[TOTAL_ROWS - 2].every((c) => c === null)).toBe(true);
   });
 });
 

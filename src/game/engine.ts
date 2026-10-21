@@ -2,7 +2,7 @@ import { SevenBag } from './bag';
 import {
   clearFullRows,
   collides,
-  removeRows,
+  removeLockedRows,
   createBoard,
   findFullRows,
   ghostY,
@@ -136,8 +136,8 @@ function collectRowCells(
   return cells;
 }
 
-function finishSpawnAfterLock(state: GameState): void {
-  clearFullRows(state.board);
+function finishSpawnAfterLock(state: GameState, sweepOrphans = true): void {
+  if (sweepOrphans) clearFullRows(state.board);
   if (!spawnFromQueue(state)) {
     state.phase = 'gameover';
     sounds.gameOver();
@@ -165,8 +165,7 @@ function settlePiece(state: GameState): void {
 function commitLineClear(state: GameState): void {
   if (!state.lineClear) return;
   const { rows } = state.lineClear;
-  removeRows(state.board, rows);
-  clearFullRows(state.board);
+  removeLockedRows(state.board, rows);
   state.lineClear = null;
 }
 
@@ -176,7 +175,7 @@ export function advanceLineClear(state: GameState, dtMs: number): void {
   if (state.lineClear.elapsed < state.lineClear.duration) return;
   commitLineClear(state);
   if (!state.active) {
-    finishSpawnAfterLock(state);
+    finishSpawnAfterLock(state, false);
   }
 }
 

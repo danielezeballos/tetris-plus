@@ -69,16 +69,25 @@ export function clearFullRows(board: Cell[][]): number {
   return cleared;
 }
 
-export function removeRows(board: Cell[][], rows: number[]): number {
-  const unique = [...new Set(rows)].sort((a, b) => b - a);
-  let removed = 0;
-  for (const y of unique) {
-    if (y < 0 || y >= board.length) continue;
-    board.splice(y, 1);
-    board.unshift(Array.from({ length: COLS }, () => null));
-    removed++;
+/** Remove exactly the given row indices in one pass (lock-time full lines). */
+export function removeLockedRows(board: Cell[][], rows: number[]): number {
+  if (rows.length === 0) return 0;
+  const remove = new Set(rows);
+  const kept: Cell[][] = [];
+  for (let y = 0; y < board.length; y++) {
+    if (!remove.has(y)) kept.push(board[y]);
   }
-  return removed;
+  const cleared = rows.length;
+  while (kept.length < TOTAL_ROWS) {
+    kept.unshift(Array.from({ length: COLS }, () => null));
+  }
+  board.splice(0, board.length, ...kept);
+  return cleared;
+}
+
+/** @deprecated use removeLockedRows — iterative splice shifts indices between deletes */
+export function removeRows(board: Cell[][], rows: number[]): number {
+  return removeLockedRows(board, rows);
 }
 
 /** @deprecated alias */
