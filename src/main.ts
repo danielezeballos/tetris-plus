@@ -191,7 +191,11 @@ let pauseBoardsHandled = false;
 let pendingScoreSubmit = false;
 
 function overlayShowsLeaderboards(): boolean {
-  return state.phase === 'paused' || state.phase === 'gameover';
+  return (
+    state.phase === 'start' ||
+    state.phase === 'paused' ||
+    state.phase === 'gameover'
+  );
 }
 
 function renderLeaderboards(): void {
@@ -281,11 +285,11 @@ function updateOverlay(): void {
   }
   overlay.classList.remove('hidden');
   if (phase === 'start') {
-    leaderboardsEl.classList.add('hidden');
     setNamePromptVisible(false);
     overlayTitle.textContent = 'tetris.plus';
     overlayBody.textContent = 'Clear lines to score. Speed increases every 10 lines.';
     overlayBtn.textContent = 'Start';
+    renderLeaderboards();
   } else if (phase === 'paused') {
     setNamePromptVisible(false);
     overlayTitle.textContent = 'Paused';
@@ -383,6 +387,8 @@ lbRetry.addEventListener('click', () => {
     void handleGameOver();
   } else if (state.phase === 'paused') {
     void handlePauseLeaderboards();
+  } else {
+    void refreshLeaderboards();
   }
 });
 
@@ -418,6 +424,7 @@ function loop(now: number): void {
 }
 
 fitViewport();
+void refreshLeaderboards();
 requestAnimationFrame(loop);
 
 if (import.meta.env.DEV) {
