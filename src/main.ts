@@ -126,7 +126,7 @@ function updateOverlay(): void {
   }
   overlay.classList.remove('hidden');
   if (phase === 'start') {
-    overlayTitle.textContent = 'Stackfall';
+    overlayTitle.textContent = 'tetris.plus';
     overlayBody.textContent = 'Clear lines to score. Speed increases every 10 lines.';
     overlayBtn.textContent = 'Start';
   } else if (phase === 'paused') {

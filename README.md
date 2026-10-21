@@ -1,4 +1,4 @@
-# Stackfall
+# tetris.plus
 
 A single-player marathon block puzzle built with **Vite** and **TypeScript**. Original visuals and WebAudio sounds — not an official Tetris client.
 
@@ -33,12 +33,10 @@ npm run preview
 | **A** | Rotate 180° |
 | **C** or **Shift** | Hold (once per piece until lock) |
 
-On narrow screens, on-screen buttons mirror movement, rotation, hold, and hard drop.
-
 ## Rules (marathon)
 
 - 10×20 visible well; pieces spawn in hidden rows above.
 - Seven tetrominoes with a 7-bag randomizer, SRS wall kicks, ghost piece, 5-piece preview queue.
-- Lock delay ~500ms with limited move/rotate resets; DAS ~133ms, ARR 0.
+- Lock delay ~500ms with limited move/rotate resets; horizontal DAS 130ms, ARR 46ms.
 - Level increases every 10 lines; gravity speeds up per level.
 - Scoring: single 100, double 300, triple 500, four lines 800 (× level); soft drop +1/cell, hard drop +2/cell.
