@@ -179,6 +179,10 @@ body {
   text-align: left;
 }
 
+.leaderboards .lb-list .lb-error {
+  list-style: none;
+}
+
 .lb-heading {
   display: block;
   font-size: 0.625rem;
@@ -216,6 +220,34 @@ body {
 
 .lb-empty {
   color: var(--muted);
+}
+
+.lb-error {
+  color: var(--muted);
+  font-size: 0.625rem;
+  line-height: 1.4;
+  grid-column: 1 / -1;
+}
+
+.lb-retry {
+  grid-column: 1 / -1;
+  margin-top: 0.35rem;
+  width: 100%;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--muted);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.6875rem;
+  cursor: pointer;
+}
+
+.lb-retry.hidden {
+  display: none;
+}
+
+.lb-retry:hover {
+  opacity: 0.85;
 }
 
 .name-prompt {

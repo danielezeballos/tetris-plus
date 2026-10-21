@@ -20,12 +20,20 @@ import {
 } from './theme';
 import {
   fetchLeaderboards,
+  formatLeaderboardError,
+  formatLeaderboardLoading,
   formatLeaderboardRows,
   MAX_NAME_LENGTH,
   scoreQualifiesForSubmission,
   submitLeaderboardScore,
   type LeaderboardsView,
 } from './leaderboards';
+
+type BoardsLoadState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'ready'; data: LeaderboardsView }
+  | { status: 'error'; message: string };
 
 initTheme();
 initSound();
@@ -72,6 +80,9 @@ app.innerHTML = `
                 <span class="lb-heading">Today</span>
                 <ol id="lb-today" class="lb-list"></ol>
               </div>
+              <button type="button" id="lb-retry" class="lb-retry hidden">
+                Retry leaderboards
+              </button>
             </div>
             <button type="button" id="overlay-btn" class="primary-btn"></button>
           </div>
@@ -123,6 +134,7 @@ const nameSubmit = document.querySelector<HTMLButtonElement>('#name-submit')!;
 const leaderboardsEl = document.querySelector<HTMLDivElement>('#leaderboards')!;
 const lbAllTime = document.querySelector<HTMLOListElement>('#lb-alltime')!;
 const lbToday = document.querySelector<HTMLOListElement>('#lb-today')!;
+const lbRetry = document.querySelector<HTMLButtonElement>('#lb-retry')!;
 const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle')!;
 const soundToggle = document.querySelector<HTMLButtonElement>('#sound-toggle')!;
 
@@ -156,18 +168,63 @@ for (let i = 0; i < 5; i++) {
   nextQueue.appendChild(c);
 }
 
-let boardsView: LeaderboardsView | null = null;
+let boardsState: BoardsLoadState = { status: 'idle' };
+let boardsFetchGen = 0;
 let gameOverHandled = false;
+let pauseBoardsHandled = false;
 let pendingScoreSubmit = false;
 
+function overlayShowsLeaderboards(): boolean {
+  return state.phase === 'paused' || state.phase === 'gameover';
+}
+
 function renderLeaderboards(): void {
-  if (!boardsView) {
+  if (!overlayShowsLeaderboards()) {
     leaderboardsEl.classList.add('hidden');
+    lbRetry.classList.add('hidden');
     return;
   }
   leaderboardsEl.classList.remove('hidden');
-  lbAllTime.innerHTML = formatLeaderboardRows(boardsView.allTime);
-  lbToday.innerHTML = formatLeaderboardRows(boardsView.today);
+  if (boardsState.status === 'loading') {
+    lbAllTime.innerHTML = formatLeaderboardLoading();
+    lbToday.innerHTML = formatLeaderboardLoading();
+    lbRetry.classList.add('hidden');
+    return;
+  }
+  if (boardsState.status === 'error') {
+    const msg = boardsState.message;
+    lbAllTime.innerHTML = formatLeaderboardError(msg);
+    lbToday.innerHTML = formatLeaderboardError(msg);
+    lbRetry.classList.remove('hidden');
+    return;
+  }
+  if (boardsState.status === 'ready') {
+    lbAllTime.innerHTML = formatLeaderboardRows(boardsState.data.allTime);
+    lbToday.innerHTML = formatLeaderboardRows(boardsState.data.today);
+    lbRetry.classList.add('hidden');
+    return;
+  }
+  lbAllTime.innerHTML = formatLeaderboardLoading();
+  lbToday.innerHTML = formatLeaderboardLoading();
+  lbRetry.classList.add('hidden');
+}
+
+async function refreshLeaderboards(): Promise<void> {
+  const gen = ++boardsFetchGen;
+  boardsState = { status: 'loading' };
+  renderLeaderboards();
+  try {
+    const data = await fetchLeaderboards();
+    if (gen !== boardsFetchGen) return;
+    boardsState = { status: 'ready', data };
+  } catch {
+    if (gen !== boardsFetchGen) return;
+    boardsState = {
+      status: 'error',
+      message: 'Could not load leaderboards',
+    };
+  }
+  renderLeaderboards();
 }
 
 function setNamePromptVisible(visible: boolean): void {
@@ -178,16 +235,25 @@ function setNamePromptVisible(visible: boolean): void {
   }
 }
 
+function applyQualifyingScorePrompt(score: number): void {
+  if (boardsState.status !== 'ready') {
+    pendingScoreSubmit = false;
+    setNamePromptVisible(false);
+    return;
+  }
+  pendingScoreSubmit = scoreQualifiesForSubmission(boardsState.data, score);
+  setNamePromptVisible(pendingScoreSubmit);
+}
+
 async function handleGameOver(): Promise<void> {
   const score = state.score;
-  try {
-    boardsView = await fetchLeaderboards();
-  } catch {
-    boardsView = { allTime: [], today: [] };
-  }
-  pendingScoreSubmit = scoreQualifiesForSubmission(boardsView, score);
-  setNamePromptVisible(pendingScoreSubmit);
-  renderLeaderboards();
+  await refreshLeaderboards();
+  applyQualifyingScorePrompt(score);
+  updateOverlay();
+}
+
+async function handlePauseLeaderboards(): Promise<void> {
+  await refreshLeaderboards();
   updateOverlay();
 }
 
@@ -205,11 +271,11 @@ function updateOverlay(): void {
     overlayBody.textContent = 'Clear lines to score. Speed increases every 10 lines.';
     overlayBtn.textContent = 'Start';
   } else if (phase === 'paused') {
-    leaderboardsEl.classList.add('hidden');
     setNamePromptVisible(false);
     overlayTitle.textContent = 'Paused';
     overlayBody.textContent = '';
     overlayBtn.textContent = 'Resume';
+    renderLeaderboards();
   } else {
     overlayTitle.textContent = 'Game over';
     overlayBody.textContent = `${state.score.toLocaleString()} points · level ${state.level}`;
@@ -223,10 +289,21 @@ function onPhaseChange(): void {
     gameOverHandled = true;
     void handleGameOver();
   }
+  if (state.phase === 'paused' && !pauseBoardsHandled) {
+    pauseBoardsHandled = true;
+    void handlePauseLeaderboards();
+  }
+  if (state.phase === 'playing') {
+    pauseBoardsHandled = false;
+    boardsState = { status: 'idle' };
+    boardsFetchGen++;
+  }
   if (state.phase !== 'gameover') {
     gameOverHandled = false;
-    pendingScoreSubmit = false;
-    setNamePromptVisible(false);
+    if (state.phase !== 'paused') {
+      pendingScoreSubmit = false;
+      setNamePromptVisible(false);
+    }
   }
 }
 
@@ -274,12 +351,24 @@ async function savePendingScore(): Promise<void> {
   setNamePromptVisible(false);
   try {
     const result = await submitLeaderboardScore(score, name);
-    boardsView = result.boards;
+    boardsState = { status: 'ready', data: result.boards };
   } catch {
-    /* keep last fetched boards */
+    boardsState = {
+      status: 'error',
+      message: 'Could not save score',
+    };
   }
   renderLeaderboards();
 }
+
+lbRetry.addEventListener('click', () => {
+  if (!overlayShowsLeaderboards()) return;
+  if (state.phase === 'gameover') {
+    void handleGameOver();
+  } else if (state.phase === 'paused') {
+    void handlePauseLeaderboards();
+  }
+});
 
 nameSubmit.addEventListener('click', () => {
   void savePendingScore();

@@ -42,7 +42,7 @@ export async function submitLeaderboardScore(
 
 export function formatLeaderboardRows(entries: LeaderboardEntry[]): string {
   if (entries.length === 0) {
-    return '<li class="lb-empty">—</li>';
+    return '<li class="lb-empty">No scores yet</li>';
   }
   return entries
     .map(
@@ -50,6 +50,14 @@ export function formatLeaderboardRows(entries: LeaderboardEntry[]): string {
         `<li><span class="lb-name">${escapeHtml(e.name)}</span><span class="lb-score">${e.score.toLocaleString()}</span></li>`,
     )
     .join('');
+}
+
+export function formatLeaderboardLoading(): string {
+  return '<li class="lb-empty">Loading…</li>';
+}
+
+export function formatLeaderboardError(message: string): string {
+  return `<li class="lb-error">${escapeHtml(message)}</li>`;
 }
 
 function escapeHtml(s: string): string {
