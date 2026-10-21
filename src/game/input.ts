@@ -9,8 +9,6 @@ import {
   tryRotate,
 } from './engine';
 
-type Dir = 'left' | 'right' | 'down';
-
 interface DasState {
   left: boolean;
   right: boolean;
