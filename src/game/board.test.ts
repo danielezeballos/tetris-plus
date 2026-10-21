@@ -25,6 +25,15 @@ describe('collides', () => {
     expect(collides(board, i)).toBe(false);
   });
 
+  it('allows sliding along a stack when vacating occupied cells', () => {
+    const board = createBoard();
+    board[21][2] = 'I';
+    board[21][3] = 'I';
+    const p = piece('T', 1, 20, 0);
+    expect(collides(board, p, 1, 0)).toBe(false);
+    expect(collides(board, p, 2, 0)).toBe(false);
+  });
+
   it('blocks horizontal walls and floor', () => {
     const board = createBoard();
     expect(collides(board, piece('O', -2, 0))).toBe(true);
