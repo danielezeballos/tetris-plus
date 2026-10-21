@@ -146,11 +146,11 @@ export function tryMove(state: GameState, dx: number, dy: number): boolean {
     state.score += SOFT_DROP_SCORE;
     sounds.softDrop();
   }
+  if (dx !== 0 || dy > 0) {
+    state.onGround = collides(state.board, state.active, 0, 1);
+  }
   if (state.onGround && (dx !== 0 || dy !== 0)) {
     resetLock(state);
-  }
-  if (dy > 0) {
-    state.onGround = collides(state.board, state.active, 0, 1);
   }
   return true;
 }
@@ -233,7 +233,8 @@ export function updateGame(state: GameState, dtMs: number): void {
     }
   }
 
-  if (state.onGround || collides(state.board, state.active, 0, 1)) {
+  const grounded = collides(state.board, state.active, 0, 1);
+  if (grounded) {
     state.onGround = true;
     state.lockTimer += dtMs;
     if (state.lockTimer >= LOCK_DELAY_MS) {

@@ -23,8 +23,9 @@ export function collides(
   for (const [x, y] of getCells(piece)) {
     const nx = x + offsetX;
     const ny = y + offsetY;
-    if (!inBounds(nx, ny)) return true;
-    if (board[ny][nx] !== null) return true;
+    if (nx < 0 || nx >= COLS) return true;
+    if (ny >= TOTAL_ROWS) return true;
+    if (ny >= 0 && board[ny][nx] !== null) return true;
   }
   return false;
 }

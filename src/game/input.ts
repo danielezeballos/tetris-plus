@@ -98,13 +98,15 @@ const KEY_MAP: Record<string, string> = {
   R: 'restart',
 };
 
-function pressHorizontal(dir: 'left' | 'right', state: GameState): void {
+export function pressHorizontal(dir: 'left' | 'right', state: GameState): void {
   if (dir === 'left') {
+    releaseHorizontal('right');
     das.left = true;
     das.leftTimer = 0;
     das.leftArr = false;
     handleAction(state, 'left');
   } else {
+    releaseHorizontal('left');
     das.right = true;
     das.rightTimer = 0;
     das.rightArr = false;
@@ -226,6 +228,17 @@ export function updateInput(state: GameState, dtMs: number): void {
 }
 
 const HOLD_REPEAT_ACTIONS = new Set(['left', 'right']);
+
+export function resetInputDas(): void {
+  releaseHorizontal('left');
+  releaseHorizontal('right');
+  das.down = false;
+  das.downTimer = 0;
+}
+
+export function inputHorizontalHeld(): { left: boolean; right: boolean } {
+  return { left: das.left, right: das.right };
+}
 
 export function bindTouchButtons(state: GameState): void {
   document.querySelectorAll<HTMLElement>('[data-action]').forEach((el) => {
