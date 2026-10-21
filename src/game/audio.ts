@@ -37,7 +37,7 @@ function tone(
 export const sounds = {
   move: () => tone(220, 0.03, 'triangle', 0.04),
   rotate: () => tone(330, 0.04, 'triangle', 0.05),
-  softDrop: () => tone(180, 0.02, 'square', 0.03),
+  softDrop: () => {},
   hardDrop: () => tone(120, 0.08, 'sawtooth', 0.06),
   lock: () => tone(90, 0.06, 'square', 0.05),
   lineClear: (lines: number) => {

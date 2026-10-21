@@ -194,7 +194,6 @@ export function tryMove(state: GameState, dx: number, dy: number): boolean {
   if (dx !== 0) sounds.move();
   if (dy > 0) {
     state.score += SOFT_DROP_SCORE;
-    sounds.softDrop();
   }
   if (dx !== 0 || dy > 0) {
     state.onGround = collides(state.board, state.active, 0, 1);
