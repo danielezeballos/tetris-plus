@@ -83,7 +83,8 @@ body {
   gap: 0;
   display: grid;
   grid-template-rows: auto 1fr;
-  overflow: hidden;
+  overflow-x: visible;
+  overflow-y: hidden;
 }
 
 .panel-right .block:first-child {

@@ -22,6 +22,11 @@ export function setPlayfieldScale(wellCell: number): void {
   previewCell = Math.min(ideal, maxPreviewCellForWell(wellCell));
 }
 
+/** Clamp preview minos after setPlayfieldScale when horizontal space is tight. */
+export function capPreviewCell(maxCell: number): void {
+  previewCell = Math.max(4, Math.min(previewCell, maxCell));
+}
+
 export function getCellSize(): number {
   return cellSize;
 }
