@@ -8,8 +8,12 @@ export const NEXT_QUEUE_SIZE = 5;
 export const LOCK_DELAY_MS = 500;
 export const MAX_LOCK_RESETS = 15;
 
+/** Delayed auto-shift for soft drop (unchanged). */
 export const DAS_MS = 133;
-export const ARR_MS = 0;
+
+/** Left / right: delay before auto-repeat, then repeat interval (0 = every frame). */
+export const DAS_HORIZONTAL_MS = 100;
+export const ARR_HORIZONTAL_MS = 0;
 
 export const SOFT_DROP_SCORE = 1;
 export const HARD_DROP_SCORE = 2;
