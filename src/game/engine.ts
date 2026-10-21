@@ -131,7 +131,7 @@ function settlePiece(state: GameState): void {
 
 function resetLock(state: GameState): void {
   if (state.lockResets < MAX_LOCK_RESETS) {
-    state.lockTimer = LOCK_DELAY_MS;
+    state.lockTimer = 0;
     state.lockResets++;
   }
 }
@@ -220,9 +220,8 @@ export function holdPiece(state: GameState): void {
   }
 }
 
-export function updateGame(state: GameState, dtMs: number): void {
+export function applyGravity(state: GameState, dtMs: number): void {
   if (state.phase !== 'playing' || !state.active) return;
-
   const interval = gravityMs(state.level);
   state.gravityAccumulator += dtMs;
   while (state.gravityAccumulator >= interval) {
@@ -232,7 +231,10 @@ export function updateGame(state: GameState, dtMs: number): void {
       break;
     }
   }
+}
 
+export function advanceLockDelay(state: GameState, dtMs: number): void {
+  if (state.phase !== 'playing' || !state.active) return;
   const grounded = collides(state.board, state.active, 0, 1);
   if (grounded) {
     state.onGround = true;
@@ -245,6 +247,11 @@ export function updateGame(state: GameState, dtMs: number): void {
     state.lockTimer = 0;
     state.lockResets = 0;
   }
+}
+
+export function updateGame(state: GameState, dtMs: number): void {
+  applyGravity(state, dtMs);
+  advanceLockDelay(state, dtMs);
 }
 
 export function getGhostPiece(state: GameState): ActivePiece | null {

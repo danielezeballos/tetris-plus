@@ -48,7 +48,7 @@ describe('tuck under overhang', () => {
 
     expect(collides(board, state.active!, 1, 0)).toBe(false);
     expect(tryMove(state, 1, 0)).toBe(true);
-    expect(state.lockTimer).toBe(LOCK_DELAY_MS);
+    expect(state.lockTimer).toBe(0);
 
     expect(
       getCells(state.active!).some(([cx, cy]) => cx === 4 && cy === floor),

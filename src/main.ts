@@ -3,10 +3,10 @@ import {
   createInitialState,
   startGame,
   togglePause,
-  updateGame,
   type GameState,
 } from './game/engine';
 import { bindKeyboard, updateInput } from './game/input';
+import { gameTick } from './game/tick';
 import { drawPreview, drawWell } from './game/renderer';
 import { bindCustomizePanel } from './customize';
 import { computeFitCellSize } from './layout-fit';
@@ -188,7 +188,7 @@ function loop(now: number): void {
   const dt = Math.min(now - last, 50);
   last = now;
   updateInput(state, dt);
-  updateGame(state, dt);
+  gameTick(state, dt);
   render();
   requestAnimationFrame(loop);
 }

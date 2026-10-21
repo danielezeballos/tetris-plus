@@ -98,6 +98,20 @@ const KEY_MAP: Record<string, string> = {
   R: 'restart',
 };
 
+export function holdHorizontal(dir: 'left' | 'right'): void {
+  if (dir === 'left') {
+    releaseHorizontal('right');
+    das.left = true;
+    das.leftTimer = 0;
+    das.leftArr = false;
+  } else {
+    releaseHorizontal('left');
+    das.right = true;
+    das.rightTimer = 0;
+    das.rightArr = false;
+  }
+}
+
 export function pressHorizontal(dir: 'left' | 'right', state: GameState): void {
   if (dir === 'left') {
     releaseHorizontal('right');
@@ -163,13 +177,13 @@ export function bindKeyboard(state: GameState): void {
   });
 }
 
-export function updateInput(state: GameState, dtMs: number): void {
-  const step = (dir: Dir): void => {
-    if (dir === 'left') tryMove(state, -1, 0);
-    if (dir === 'right') tryMove(state, 1, 0);
-    if (dir === 'down') tryMove(state, 0, 1);
-  };
+function horizontalStep(dir: 'left' | 'right', state: GameState): void {
+  if (dir === 'left') tryMove(state, -1, 0);
+  if (dir === 'right') tryMove(state, 1, 0);
+}
 
+/** DAS/ARR for held left/right — call before gravity each frame. */
+export function processHorizontalDas(state: GameState, dtMs: number): void {
   const processHorizontal = (
     held: boolean,
     timer: number,
@@ -182,17 +196,17 @@ export function updateInput(state: GameState, dtMs: number): void {
     let t = timer + dtMs;
     if (!arrPhase) {
       if (t >= DAS_HORIZONTAL_MS) {
-        step(dir);
+        horizontalStep(dir, state);
         return { timer: 0, arrPhase: true };
       }
       return { timer: t, arrPhase: false };
     }
     if (ARR_HORIZONTAL_MS <= 0) {
-      step(dir);
+      horizontalStep(dir, state);
       return { timer: 0, arrPhase: true };
     }
     if (t >= ARR_HORIZONTAL_MS) {
-      step(dir);
+      horizontalStep(dir, state);
       return { timer: 0, arrPhase: true };
     }
     return { timer: t, arrPhase: true };
@@ -215,11 +229,21 @@ export function updateInput(state: GameState, dtMs: number): void {
   );
   das.rightTimer = right.timer;
   das.rightArr = right.arrPhase;
+}
+
+export function getDasHeld(): { left: boolean; right: boolean } {
+  return { left: das.left, right: das.right };
+}
+
+export function updateInput(state: GameState, dtMs: number): void {
+  const stepDown = (): void => {
+    tryMove(state, 0, 1);
+  };
 
   if (das.down && state.phase === 'playing') {
     das.downTimer += dtMs;
     if (das.downTimer >= DAS_MS) {
-      step('down');
+      stepDown();
       das.downTimer = 0;
     }
   } else {
