@@ -227,8 +227,6 @@ export function updateInput(state: GameState, dtMs: number): void {
   }
 }
 
-const HOLD_REPEAT_ACTIONS = new Set(['left', 'right']);
-
 export function resetInputDas(): void {
   releaseHorizontal('left');
   releaseHorizontal('right');
@@ -240,37 +238,3 @@ export function inputHorizontalHeld(): { left: boolean; right: boolean } {
   return { left: das.left, right: das.right };
 }
 
-export function bindTouchButtons(state: GameState): void {
-  document.querySelectorAll<HTMLElement>('[data-action]').forEach((el) => {
-    const action = el.dataset.action!;
-    if (HOLD_REPEAT_ACTIONS.has(action)) {
-      const dir = action as 'left' | 'right';
-      const onPress = (e: Event) => {
-        e.preventDefault();
-        pressHorizontal(dir, state);
-      };
-      const onRelease = (e: Event) => {
-        e.preventDefault();
-        releaseHorizontal(dir);
-      };
-      el.addEventListener('pointerdown', onPress);
-      el.addEventListener('pointerup', onRelease);
-      el.addEventListener('pointerleave', onRelease);
-      el.addEventListener('pointercancel', onRelease);
-      return;
-    }
-    const fire = () => handleAction(state, action);
-    el.addEventListener('click', (e) => {
-      e.preventDefault();
-      fire();
-    });
-    el.addEventListener(
-      'touchstart',
-      (e) => {
-        e.preventDefault();
-        fire();
-      },
-      { passive: false },
-    );
-  });
-}

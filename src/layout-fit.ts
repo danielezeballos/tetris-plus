@@ -17,10 +17,17 @@ function pageOverflows(): boolean {
     foot.getBoundingClientRect().right,
   );
   const left = Math.min(layout.getBoundingClientRect().left);
-  return (
+  if (
     bottom > appRect.bottom + 0.5 ||
     right > appRect.right + 0.5 ||
     left < appRect.left - 0.5
+  ) {
+    return true;
+  }
+  const doc = document.documentElement;
+  return (
+    doc.scrollHeight > window.innerHeight + 0.5 ||
+    doc.scrollWidth > window.innerWidth + 0.5
   );
 }
 

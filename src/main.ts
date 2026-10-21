@@ -6,7 +6,7 @@ import {
   updateGame,
   type GameState,
 } from './game/engine';
-import { bindKeyboard, bindTouchButtons, updateInput } from './game/input';
+import { bindKeyboard, updateInput } from './game/input';
 import { drawPreview, drawWell } from './game/renderer';
 import { bindCustomizePanel } from './customize';
 import { computeFitCellSize } from './layout-fit';
@@ -57,14 +57,8 @@ app.innerHTML = `
         </div>
       </aside>
     </main>
-    <div class="touch-pad mobile-only">
-      <button type="button" data-action="left" class="touch-btn">←</button>
-      <button type="button" data-action="down" class="touch-btn">↓</button>
-      <button type="button" data-action="right" class="touch-btn">→</button>
-      <button type="button" data-action="hardDrop" class="touch-btn wide">Drop</button>
-    </div>
     <footer class="page-foot">
-      <p class="hint desktop-only">Enter start · Esc pause · Arrows move · Space drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
+      <p class="hint">Enter start · Esc pause · Arrows move · Space drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
       <div class="foot-controls">
         <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false"></button>
         <button type="button" id="sound-toggle" class="theme-toggle" aria-pressed="false"></button>
@@ -188,7 +182,6 @@ overlayBtn.addEventListener('click', () => {
 });
 
 bindKeyboard(state);
-bindTouchButtons(state);
 
 let last = performance.now();
 function loop(now: number): void {
