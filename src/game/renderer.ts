@@ -6,11 +6,29 @@ import { getCells, type ActivePiece } from './tetromino';
 import type { PieceKind } from './constants';
 import { isDarkTheme } from '../theme';
 
-/** Playfield cell size (10×20 visible rows). */
-export const CELL = 54.49;
-/** Preview size tracks the prior layout so the stats column height stays fixed. */
-const PREVIEW_CELL = 42;
-export const PREVIEW_CANVAS_SIZE = 4 * PREVIEW_CELL;
+let cellSize = 28;
+let previewCell = 22;
+
+function maxPreviewCellForWell(wellCell: number): number {
+  const reserved = 158;
+  const gaps = 44;
+  const available = 20 * wellCell - reserved - gaps;
+  return Math.max(4, Math.floor(available / 20));
+}
+
+export function setPlayfieldScale(wellCell: number): void {
+  cellSize = wellCell;
+  const ideal = Math.max(4, Math.round((wellCell * 22) / 28));
+  previewCell = Math.min(ideal, maxPreviewCellForWell(wellCell));
+}
+
+export function getCellSize(): number {
+  return cellSize;
+}
+
+export function getPreviewCanvasSize(): number {
+  return 4 * previewCell;
+}
 
 function wellPalette() {
   const dark = isDarkTheme();
@@ -20,11 +38,17 @@ function wellPalette() {
     ghost: dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
   };
 }
-const WELL_W = COLS * CELL;
-const WELL_H = VISIBLE_ROWS * CELL;
 
-export function wellDimensions(): { width: number; height: number; cell: number } {
-  return { width: WELL_W, height: WELL_H, cell: CELL };
+export function wellDimensions(): {
+  width: number;
+  height: number;
+  cell: number;
+} {
+  return {
+    width: COLS * cellSize,
+    height: VISIBLE_ROWS * cellSize,
+    cell: cellSize,
+  };
 }
 
 function drawCell(
@@ -56,10 +80,10 @@ function drawPiece(
     if (row < 0 || row >= VISIBLE_ROWS) continue;
     drawCell(
       ctx,
-      cx * CELL,
-      row * CELL + offsetY,
+      cx * cellSize,
+      row * cellSize + offsetY,
       ghost ? 'ghost' : piece.kind,
-      CELL,
+      cellSize,
     );
   }
 }
@@ -70,25 +94,27 @@ function drawBoard(ctx: CanvasRenderingContext2D, board: Cell[][]): void {
       const cell = board[y][x];
       const row = y - HIDDEN_ROWS;
       if (cell) {
-        drawCell(ctx, x * CELL, row * CELL, cell, CELL);
+        drawCell(ctx, x * cellSize, row * cellSize, cell, cellSize);
       }
     }
   }
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D): void {
+  const wellW = COLS * cellSize;
+  const wellH = VISIBLE_ROWS * cellSize;
   ctx.strokeStyle = wellPalette().grid;
   ctx.lineWidth = 1;
   for (let x = 0; x <= COLS; x++) {
     ctx.beginPath();
-    ctx.moveTo(x * CELL, 0);
-    ctx.lineTo(x * CELL, WELL_H);
+    ctx.moveTo(x * cellSize, 0);
+    ctx.lineTo(x * cellSize, wellH);
     ctx.stroke();
   }
   for (let y = 0; y <= VISIBLE_ROWS; y++) {
     ctx.beginPath();
-    ctx.moveTo(0, y * CELL);
-    ctx.lineTo(WELL_W, y * CELL);
+    ctx.moveTo(0, y * cellSize);
+    ctx.lineTo(wellW, y * cellSize);
     ctx.stroke();
   }
 }
@@ -97,12 +123,16 @@ export function drawWell(
   canvas: HTMLCanvasElement,
   state: GameState,
 ): void {
+  const wellW = COLS * cellSize;
+  const wellH = VISIBLE_ROWS * cellSize;
   const ctx = canvas.getContext('2d')!;
-  canvas.width = WELL_W;
-  canvas.height = WELL_H;
+  canvas.width = wellW;
+  canvas.height = wellH;
+  canvas.style.width = `${wellW}px`;
+  canvas.style.height = `${wellH}px`;
 
   ctx.fillStyle = wellPalette().fill;
-  ctx.fillRect(0, 0, WELL_W, WELL_H);
+  ctx.fillRect(0, 0, wellW, wellH);
 
   drawGrid(ctx);
   drawBoard(ctx, state.board);
@@ -121,7 +151,7 @@ export function drawPreview(
   kind: PieceKind | null,
   label: string,
 ): void {
-  const size = PREVIEW_CANVAS_SIZE;
+  const size = 4 * previewCell;
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d')!;
@@ -131,7 +161,7 @@ export function drawPreview(
   const cells = getCells(piece);
   const minX = Math.min(...cells.map((c) => c[0]));
   const minY = Math.min(...cells.map((c) => c[1]));
-  const cell = PREVIEW_CELL;
+  const cell = previewCell;
   const ox = (size - 4 * cell) / 2;
   const oy = (size - 4 * cell) / 2;
   for (const [cx, cy] of cells) {

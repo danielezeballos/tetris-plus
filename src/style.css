@@ -23,9 +23,14 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
-  min-height: 100vh;
   background: var(--bg);
   color: var(--text);
   font-weight: 400;
@@ -33,26 +38,33 @@ body {
 }
 
 #app {
-  min-height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
   display: flex;
   justify-content: center;
-  padding: 2.5rem 1.5rem 2rem;
+  padding: clamp(0.5rem, 1.5vh, 1.25rem) clamp(0.75rem, 2vw, 1.5rem);
 }
 
 .shell {
-  width: min(1040px, 100%);
+  width: min(100%, 1100px);
+  height: 100%;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: clamp(0.35rem, 1vh, 0.85rem);
   align-items: center;
+  justify-content: space-between;
 }
 
 .layout {
   display: flex;
-  gap: 2.5rem;
+  gap: clamp(0.75rem, 2vw, 2rem);
   align-items: flex-start;
   justify-content: center;
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .panel {
@@ -62,8 +74,20 @@ body {
   min-width: 5.5rem;
 }
 
-.panel-right {
-  gap: 2.25rem;
+.panel.panel-right {
+  gap: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+.panel-right .block:first-child {
+  grid-row: 1;
+}
+
+.panel-right .stats-block {
+  grid-row: 2;
+  align-self: end;
 }
 
 .block {
@@ -100,7 +124,6 @@ body {
 
 #well {
   display: block;
-  max-width: 100%;
   height: auto;
 }
 
@@ -155,7 +178,7 @@ body {
 .next-queue {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: clamp(0.2rem, 0.6vh, 0.75rem);
 }
 
 .next-piece {

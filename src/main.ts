@@ -15,11 +15,8 @@ import {
   type GameState,
 } from './game/engine';
 import { bindKeyboard, bindTouchButtons, updateInput } from './game/input';
-import {
-  drawPreview,
-  drawWell,
-  PREVIEW_CANVAS_SIZE,
-} from './game/renderer';
+import { drawPreview, drawWell } from './game/renderer';
+import { computeFitCellSize } from './layout-fit';
 
 const state: GameState = createInitialState();
 
@@ -53,19 +50,19 @@ app.innerHTML = `
           <span class="label">Next</span>
           <div id="next-queue" class="next-queue"></div>
         </div>
-        <div class="block">
+        <div class="block stats-block">
           <div class="stat-line"><span class="label">Score</span><strong id="score">0</strong></div>
           <div class="stat-line"><span class="label">Level</span><strong id="level">1</strong></div>
           <div class="stat-line"><span class="label">Lines</span><strong id="lines">0</strong></div>
         </div>
-        <div class="touch-pad mobile-only">
-          <button type="button" data-action="left" class="touch-btn">←</button>
-          <button type="button" data-action="down" class="touch-btn">↓</button>
-          <button type="button" data-action="right" class="touch-btn">→</button>
-          <button type="button" data-action="hardDrop" class="touch-btn wide">Drop</button>
-        </div>
       </aside>
     </main>
+    <div class="touch-pad mobile-only">
+      <button type="button" data-action="left" class="touch-btn">←</button>
+      <button type="button" data-action="down" class="touch-btn">↓</button>
+      <button type="button" data-action="right" class="touch-btn">→</button>
+      <button type="button" data-action="hardDrop" class="touch-btn wide">Drop</button>
+    </div>
     <footer class="page-foot">
       <p class="hint desktop-only">Enter start · Esc pause · Arrows move · Space drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
       <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false"></button>
@@ -75,8 +72,6 @@ app.innerHTML = `
 
 const wellCanvas = document.querySelector<HTMLCanvasElement>('#well')!;
 const holdCanvas = document.querySelector<HTMLCanvasElement>('#hold-canvas')!;
-holdCanvas.width = PREVIEW_CANVAS_SIZE;
-holdCanvas.height = PREVIEW_CANVAS_SIZE;
 const nextQueue = document.querySelector<HTMLDivElement>('#next-queue')!;
 const overlay = document.querySelector<HTMLDivElement>('#overlay')!;
 const overlayTitle = document.querySelector<HTMLHeadingElement>('#overlay-title')!;
@@ -94,14 +89,12 @@ syncThemeButton();
 themeToggle.addEventListener('click', () => {
   toggleTheme();
   syncThemeButton();
-  render();
+  fitViewport();
 });
 
 for (let i = 0; i < 5; i++) {
   const c = document.createElement('canvas');
   c.className = 'next-piece';
-  c.width = PREVIEW_CANVAS_SIZE;
-  c.height = PREVIEW_CANVAS_SIZE;
   nextQueue.appendChild(c);
 }
 
@@ -150,6 +143,16 @@ function render(): void {
   updateOverlay();
 }
 
+function fitViewport(): void {
+  computeFitCellSize(render);
+}
+
+let resizeTimer = 0;
+window.addEventListener('resize', () => {
+  window.clearTimeout(resizeTimer);
+  resizeTimer = window.setTimeout(fitViewport, 50);
+});
+
 overlayBtn.addEventListener('click', () => {
   if (state.phase === 'start') startGame(state);
   else if (state.phase === 'paused') togglePause(state);
@@ -169,5 +172,5 @@ function loop(now: number): void {
   requestAnimationFrame(loop);
 }
 
-render();
+fitViewport();
 requestAnimationFrame(loop);
