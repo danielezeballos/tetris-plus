@@ -11,12 +11,12 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0f1117;
-  --text: #e8ecf4;
-  --muted: #8b95a8;
-  --line: #2a3144;
-  --well-bg: #161b28;
-  --overlay-bg: rgba(15, 17, 23, 0.9);
+  --bg: #000000;
+  --text: #f2f2f2;
+  --muted: #8a8a8a;
+  --line: #000000;
+  --well-bg: #000000;
+  --overlay-bg: rgba(0, 0, 0, 0.94);
 }
 
 * {

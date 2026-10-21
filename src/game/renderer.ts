@@ -11,7 +11,7 @@ const CELL = 28;
 function wellPalette() {
   const dark = isDarkTheme();
   return {
-    fill: dark ? '#161b28' : '#fafafa',
+    fill: dark ? '#000000' : '#fafafa',
     grid: dark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.06)',
     ghost: dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
   };
