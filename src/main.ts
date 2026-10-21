@@ -29,11 +29,6 @@ app.innerHTML = `
           <span class="label">Hold</span>
           <canvas id="hold-canvas"></canvas>
         </div>
-        <div class="touch-col mobile-only">
-          <button type="button" data-action="hold" class="touch-btn">Hold</button>
-          <button type="button" data-action="rotateCCW" class="touch-btn">↺</button>
-          <button type="button" data-action="rotateCW" class="touch-btn">↻</button>
-        </div>
       </aside>
       <section class="well-wrap">
         <canvas id="well" aria-label="Playfield"></canvas>
