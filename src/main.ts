@@ -1,13 +1,5 @@
 import './style.css';
 import {
-  initTheme,
-  isDarkTheme,
-  themeToggleLabel,
-  toggleTheme,
-} from './theme';
-
-initTheme();
-import {
   createInitialState,
   startGame,
   togglePause,
@@ -17,6 +9,16 @@ import {
 import { bindKeyboard, bindTouchButtons, updateInput } from './game/input';
 import { drawPreview, drawWell } from './game/renderer';
 import { computeFitCellSize } from './layout-fit';
+import { initSound, isMuted, muteToggleLabel, toggleMute } from './sound';
+import {
+  initTheme,
+  isDarkTheme,
+  themeToggleLabel,
+  toggleTheme,
+} from './theme';
+
+initTheme();
+initSound();
 
 const state: GameState = createInitialState();
 
@@ -60,7 +62,10 @@ app.innerHTML = `
     </div>
     <footer class="page-foot">
       <p class="hint desktop-only">Enter start · Esc pause · Arrows move · Space drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
-      <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false"></button>
+      <div class="foot-controls">
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false"></button>
+        <button type="button" id="sound-toggle" class="theme-toggle" aria-pressed="false"></button>
+      </div>
     </footer>
   </div>
 `;
@@ -73,6 +78,7 @@ const overlayTitle = document.querySelector<HTMLHeadingElement>('#overlay-title'
 const overlayBody = document.querySelector<HTMLParagraphElement>('#overlay-body')!;
 const overlayBtn = document.querySelector<HTMLButtonElement>('#overlay-btn')!;
 const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle')!;
+const soundToggle = document.querySelector<HTMLButtonElement>('#sound-toggle')!;
 
 function syncThemeButton(): void {
   const dark = isDarkTheme();
@@ -80,11 +86,22 @@ function syncThemeButton(): void {
   themeToggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
 }
 
+function syncSoundButton(): void {
+  const muted = isMuted();
+  soundToggle.textContent = muteToggleLabel(muted);
+  soundToggle.setAttribute('aria-pressed', muted ? 'true' : 'false');
+}
+
 syncThemeButton();
+syncSoundButton();
 themeToggle.addEventListener('click', () => {
   toggleTheme();
   syncThemeButton();
   fitViewport();
+});
+soundToggle.addEventListener('click', () => {
+  toggleMute();
+  syncSoundButton();
 });
 
 for (let i = 0; i < 5; i++) {

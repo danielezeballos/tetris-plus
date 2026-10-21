@@ -1,3 +1,5 @@
+import { isMuted } from '../sound';
+
 let ctx: AudioContext | null = null;
 
 function getCtx(): AudioContext {
@@ -13,6 +15,7 @@ function tone(
   type: OscillatorType = 'square',
   gain = 0.08,
 ): void {
+  if (isMuted()) return;
   const ac = getCtx();
   if (ac.state === 'suspended') {
     ac.resume();

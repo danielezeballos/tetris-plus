@@ -204,6 +204,14 @@ body {
   margin: 0;
 }
 
+.foot-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
 .theme-toggle {
   background: none;
   border: none;
