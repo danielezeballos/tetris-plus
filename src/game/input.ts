@@ -180,7 +180,7 @@ function horizontalStep(dir: 'left' | 'right', state: GameState): void {
   if (dir === 'right') tryMove(state, 1, 0);
 }
 
-/** DAS/ARR for held left/right — call before gravity each frame. */
+/** DAS/ARR for held left/right — at most one cell per call (130ms then 46ms). */
 export function processHorizontalDas(state: GameState, dtMs: number): void {
   const processHorizontal = (
     held: boolean,

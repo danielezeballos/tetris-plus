@@ -16,21 +16,16 @@ vi.mock('./audio', () => ({
 }));
 
 import { collides, createBoard, type Cell } from './board';
-import {
-  advanceLockDelay,
-  applyGravity,
-  createInitialState,
-  tryMove,
-} from './engine';
+import { createInitialState, tryMove } from './engine';
 import { gameTick } from './tick';
-import { gravityMs } from './constants';
-import { getCells } from './tetromino';
 import {
-  getDasHeld,
-  holdHorizontal,
-  processHorizontalDas,
-  resetInputDas,
-} from './input';
+  ARR_HORIZONTAL_MS,
+  DAS_HORIZONTAL_MS,
+  gravityMs,
+  LOCK_DELAY_MS,
+} from './constants';
+import { getCells } from './tetromino';
+import { holdHorizontal, resetInputDas } from './input';
 
 /** Screenshot user-underslide-2: gap at (7,21), green overhang at (7,20). */
 function underslideBoard(): Cell[][] {
@@ -48,6 +43,10 @@ function underslideBoard(): Cell[][] {
 
 /** Blue J from screenshot: rot 3 at (8,19) → (8,21)(9,19)(9,20)(9,21). */
 const ACTIVE_J = { kind: 'J' as const, rotation: 3, x: 8, y: 19 };
+
+function isTucked(cells: [number, number][]): boolean {
+  return cells.some(([cx, cy]) => cx === 7 && cy === 21);
+}
 
 describe('user underslide-2 board', () => {
   beforeEach(() => {
@@ -67,35 +66,10 @@ describe('user underslide-2 board', () => {
     state.lockTimer = 100;
 
     expect(tryMove(state, -1, 0)).toBe(true);
-    expect(getCells(state.active!).some(([cx, cy]) => cx === 7 && cy === 21)).toBe(
-      true,
-    );
+    expect(isTucked(getCells(state.active!))).toBe(true);
   });
 
-  it('tucks on landing frame when holding left (nudge after gravity)', () => {
-    const board = underslideBoard();
-    const state = createInitialState();
-    state.phase = 'playing';
-    state.board = board;
-    state.active = { kind: 'J', rotation: 3, x: 8, y: 18 };
-    state.onGround = false;
-    state.lockTimer = 0;
-    state.gravityAccumulator = gravityMs(1) - 1;
-
-    holdHorizontal('left');
-    processHorizontalDas(state, 1);
-    applyGravity(state, 1);
-    if (getDasHeld().left) tryMove(state, -1, 0);
-    advanceLockDelay(state, 1);
-
-    expect(state.active!.kind).toBe('J');
-    expect(state.active!.y).toBe(19);
-    expect(
-      getCells(state.active!).some(([cx, cy]) => cx === 7 && cy === 21),
-    ).toBe(true);
-  });
-
-  it('gameTick matches landing-frame tuck order', () => {
+  it('tucks after landing via DAS once gravity lines up the row', () => {
     const board = underslideBoard();
     const state = createInitialState();
     state.phase = 'playing';
@@ -103,10 +77,25 @@ describe('user underslide-2 board', () => {
     state.active = { kind: 'J', rotation: 3, x: 8, y: 18 };
     state.lockTimer = 0;
     state.gravityAccumulator = gravityMs(1) - 1;
+
     holdHorizontal('left');
     gameTick(state, 1);
-    expect(
-      getCells(state.active!).some(([cx, cy]) => cx === 7 && cy === 21),
-    ).toBe(true);
+    expect(state.active!.y).toBe(19);
+    expect(isTucked(getCells(state.active!))).toBe(false);
+
+    gameTick(state, DAS_HORIZONTAL_MS);
+    expect(isTucked(getCells(state.active!))).toBe(true);
+    expect(state.lockTimer).toBeLessThan(LOCK_DELAY_MS);
+  });
+
+  it('moves at most one column per gameTick from held direction', () => {
+    const state = createInitialState();
+    state.phase = 'playing';
+    state.board = createBoard();
+    state.active = { kind: 'O', rotation: 0, x: 4, y: 0 };
+    holdHorizontal('left');
+    const x0 = state.active!.x;
+    gameTick(state, DAS_HORIZONTAL_MS + ARR_HORIZONTAL_MS);
+    expect(state.active!.x).toBe(x0 - 1);
   });
 });
