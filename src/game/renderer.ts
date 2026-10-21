@@ -6,7 +6,9 @@ import { getCells, type ActivePiece } from './tetromino';
 import type { PieceKind } from './constants';
 import { isDarkTheme } from '../theme';
 
-const CELL = 28;
+export const CELL = 36;
+const PREVIEW_CELL = Math.round(CELL * (22 / 28));
+export const PREVIEW_CANVAS_SIZE = 4 * PREVIEW_CELL;
 
 function wellPalette() {
   const dark = isDarkTheme();
@@ -117,7 +119,7 @@ export function drawPreview(
   kind: PieceKind | null,
   label: string,
 ): void {
-  const size = 4 * 22;
+  const size = PREVIEW_CANVAS_SIZE;
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d')!;
@@ -127,7 +129,7 @@ export function drawPreview(
   const cells = getCells(piece);
   const minX = Math.min(...cells.map((c) => c[0]));
   const minY = Math.min(...cells.map((c) => c[1]));
-  const cell = 22;
+  const cell = PREVIEW_CELL;
   const ox = (size - 4 * cell) / 2;
   const oy = (size - 4 * cell) / 2;
   for (const [cx, cy] of cells) {

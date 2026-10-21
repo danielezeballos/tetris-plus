@@ -15,7 +15,11 @@ import {
   type GameState,
 } from './game/engine';
 import { bindKeyboard, bindTouchButtons, updateInput } from './game/input';
-import { drawPreview, drawWell } from './game/renderer';
+import {
+  drawPreview,
+  drawWell,
+  PREVIEW_CANVAS_SIZE,
+} from './game/renderer';
 
 const state: GameState = createInitialState();
 
@@ -26,7 +30,7 @@ app.innerHTML = `
       <aside class="panel panel-left">
         <div class="block">
           <span class="label">Hold</span>
-          <canvas id="hold-canvas" width="88" height="88"></canvas>
+          <canvas id="hold-canvas"></canvas>
         </div>
         <div class="touch-col mobile-only">
           <button type="button" data-action="hold" class="touch-btn">Hold</button>
@@ -71,6 +75,8 @@ app.innerHTML = `
 
 const wellCanvas = document.querySelector<HTMLCanvasElement>('#well')!;
 const holdCanvas = document.querySelector<HTMLCanvasElement>('#hold-canvas')!;
+holdCanvas.width = PREVIEW_CANVAS_SIZE;
+holdCanvas.height = PREVIEW_CANVAS_SIZE;
 const nextQueue = document.querySelector<HTMLDivElement>('#next-queue')!;
 const overlay = document.querySelector<HTMLDivElement>('#overlay')!;
 const overlayTitle = document.querySelector<HTMLHeadingElement>('#overlay-title')!;
@@ -94,8 +100,8 @@ themeToggle.addEventListener('click', () => {
 for (let i = 0; i < 5; i++) {
   const c = document.createElement('canvas');
   c.className = 'next-piece';
-  c.width = 88;
-  c.height = 88;
+  c.width = PREVIEW_CANVAS_SIZE;
+  c.height = PREVIEW_CANVAS_SIZE;
   nextQueue.appendChild(c);
 }
 
