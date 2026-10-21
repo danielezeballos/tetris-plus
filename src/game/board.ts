@@ -20,12 +20,17 @@ export function collides(
   offsetX = 0,
   offsetY = 0,
 ): boolean {
-  for (const [x, y] of getCells(piece)) {
+  const cells = getCells(piece);
+  const occupying = new Set(cells.map(([cx, cy]) => `${cx},${cy}`));
+  for (const [x, y] of cells) {
     const nx = x + offsetX;
     const ny = y + offsetY;
     if (nx < 0 || nx >= COLS) return true;
     if (ny >= TOTAL_ROWS) return true;
-    if (ny >= 0 && board[ny][nx] !== null) return true;
+    if (ny >= 0 && board[ny][nx] !== null) {
+      const moving = offsetX !== 0 || offsetY !== 0;
+      if (!moving || !occupying.has(`${nx},${ny}`)) return true;
+    }
   }
   return false;
 }
