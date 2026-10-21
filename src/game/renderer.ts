@@ -1,9 +1,9 @@
-import { COLS, HIDDEN_ROWS, PIECE_COLORS, VISIBLE_ROWS } from './constants';
+import { COLS, HIDDEN_ROWS, VISIBLE_ROWS, type PieceKind } from './constants';
+import { getPieceColor } from '../piece-colors';
 import type { GameState } from './engine';
 import { getGhostPiece } from './engine';
 import type { Cell } from './board';
 import { getCells, type ActivePiece } from './tetromino';
-import type { PieceKind } from './constants';
 import { isDarkTheme } from '../theme';
 
 let cellSize = 28;
@@ -60,7 +60,7 @@ function drawCell(
 ): void {
   const pad = 2;
   const { ghost } = wellPalette();
-  const color = kind === 'ghost' ? ghost : PIECE_COLORS[kind];
+  const color = kind === 'ghost' ? ghost : getPieceColor(kind);
   ctx.fillStyle = color;
   ctx.fillRect(x + pad, y + pad, size - pad * 2, size - pad * 2);
   if (kind !== 'ghost') {
@@ -167,7 +167,7 @@ export function drawPreview(
   for (const [cx, cy] of cells) {
     const px = ox + (cx - minX) * cell;
     const py = oy + (cy - minY) * cell;
-    ctx.fillStyle = PIECE_COLORS[kind];
+    ctx.fillStyle = getPieceColor(kind);
     ctx.fillRect(px + 2, py + 2, cell - 4, cell - 4);
   }
   canvas.setAttribute('aria-label', label);

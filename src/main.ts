@@ -8,7 +8,9 @@ import {
 } from './game/engine';
 import { bindKeyboard, bindTouchButtons, updateInput } from './game/input';
 import { drawPreview, drawWell } from './game/renderer';
+import { bindCustomizePanel } from './customize';
 import { computeFitCellSize } from './layout-fit';
+import { initPieceColors } from './piece-colors';
 import { initSound, isMuted, muteToggleLabel, toggleMute } from './sound';
 import {
   initTheme,
@@ -19,6 +21,7 @@ import {
 
 initTheme();
 initSound();
+initPieceColors();
 
 const state: GameState = createInitialState();
 
@@ -65,6 +68,17 @@ app.innerHTML = `
       <div class="foot-controls">
         <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false"></button>
         <button type="button" id="sound-toggle" class="theme-toggle" aria-pressed="false"></button>
+        <div class="customize-wrap">
+          <button type="button" id="customize-toggle" class="theme-toggle" aria-expanded="false">Customize</button>
+          <div id="customize-panel" class="customize-panel hidden" role="dialog" aria-label="Piece colors">
+            <div class="customize-head">
+              <span class="label">Pieces</span>
+              <button type="button" id="customize-close" class="theme-toggle">Close</button>
+            </div>
+            <div id="customize-rows" class="customize-rows"></div>
+            <button type="button" id="customize-reset" class="theme-toggle customize-reset">Reset defaults</button>
+          </div>
+        </div>
       </div>
     </footer>
   </div>
@@ -154,6 +168,8 @@ function render(): void {
   renderHud();
   updateOverlay();
 }
+
+bindCustomizePanel(render);
 
 function fitViewport(): void {
   computeFitCellSize(render);

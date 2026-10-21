@@ -33,13 +33,3 @@ export type PieceKind = 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L';
 
 export const PIECE_KINDS: PieceKind[] = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
 
-/** Distinct palette — not guideline tetromino colors. */
-export const PIECE_COLORS: Record<PieceKind, string> = {
-  I: '#e85d75',
-  O: '#f4b860',
-  T: '#9b6dff',
-  S: '#5ec98a',
-  Z: '#ff7eb9',
-  J: '#4a9eff',
-  L: '#c17cff',
-};
