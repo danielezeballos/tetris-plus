@@ -150,6 +150,22 @@ function syncSoundButton(): void {
   soundToggle.setAttribute('aria-pressed', muted ? 'true' : 'false');
 }
 
+app.addEventListener(
+  'pointerup',
+  (e) => {
+    if (e.pointerType === 'mouse' || e.pointerType === 'pen' || e.pointerType === 'touch') {
+      const el = e.target;
+      if (el instanceof Element) {
+        const control = el.closest('button, a');
+        if (control instanceof HTMLElement) {
+          control.blur();
+        }
+      }
+    }
+  },
+  true,
+);
+
 syncThemeButton();
 syncSoundButton();
 themeToggle.addEventListener('click', () => {

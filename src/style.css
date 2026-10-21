@@ -23,6 +23,26 @@
   box-sizing: border-box;
 }
 
+:where(
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [tabindex]:not([tabindex='-1'])
+):focus,
+:where(
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [tabindex]:not([tabindex='-1'])
+):focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 html,
 body {
   height: 100%;
