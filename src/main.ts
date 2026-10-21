@@ -14,13 +14,9 @@ const state: GameState = createInitialState();
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
   <div class="shell">
-    <header class="title-bar">
-      <h1>Stackfall</h1>
-      <p class="tagline">A marathon block puzzle — original rules, original look.</p>
-    </header>
     <main class="layout">
       <aside class="panel panel-left">
-        <div class="stat-box">
+        <div class="block">
           <span class="label">Hold</span>
           <canvas id="hold-canvas" width="88" height="88"></canvas>
         </div>
@@ -41,14 +37,14 @@ app.innerHTML = `
         </div>
       </section>
       <aside class="panel panel-right">
-        <div class="stat-box">
+        <div class="block">
           <span class="label">Next</span>
           <div id="next-queue" class="next-queue"></div>
         </div>
-        <div class="stats">
-          <div><span class="label">Score</span><strong id="score">0</strong></div>
-          <div><span class="label">Level</span><strong id="level">1</strong></div>
-          <div><span class="label">Lines</span><strong id="lines">0</strong></div>
+        <div class="block">
+          <div class="stat-line"><span class="label">Score</span><strong id="score">0</strong></div>
+          <div class="stat-line"><span class="label">Level</span><strong id="level">1</strong></div>
+          <div class="stat-line"><span class="label">Lines</span><strong id="lines">0</strong></div>
         </div>
         <div class="touch-pad mobile-only">
           <button type="button" data-action="left" class="touch-btn">←</button>
@@ -58,9 +54,7 @@ app.innerHTML = `
         </div>
       </aside>
     </main>
-    <footer class="hint desktop-only">
-      <p>Enter to start · Esc pause · Arrows move · Space hard drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
-    </footer>
+    <p class="hint desktop-only">Enter start · Esc pause · Arrows move · Space drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
   </div>
 `;
 
@@ -88,18 +82,17 @@ function updateOverlay(): void {
   }
   overlay.classList.remove('hidden');
   if (phase === 'start') {
-    overlayTitle.textContent = 'Ready to play?';
-    overlayBody.textContent =
-      'Clear horizontal lines to score. Pieces fall faster as you level up every 10 lines.';
-    overlayBtn.textContent = 'Start (Enter)';
+    overlayTitle.textContent = 'Stackfall';
+    overlayBody.textContent = 'Clear lines to score. Speed increases every 10 lines.';
+    overlayBtn.textContent = 'Start';
   } else if (phase === 'paused') {
     overlayTitle.textContent = 'Paused';
-    overlayBody.textContent = 'Take a breath — your stack is waiting.';
-    overlayBtn.textContent = 'Resume (Enter)';
+    overlayBody.textContent = '';
+    overlayBtn.textContent = 'Resume';
   } else {
     overlayTitle.textContent = 'Game over';
-    overlayBody.textContent = `Final score: ${state.score.toLocaleString()} · Level ${state.level}`;
-    overlayBtn.textContent = 'Play again (R)';
+    overlayBody.textContent = `${state.score.toLocaleString()} points · level ${state.level}`;
+    overlayBtn.textContent = 'Play again';
   }
 }
 

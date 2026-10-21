@@ -22,7 +22,7 @@ function drawCell(
 ): void {
   const pad = 2;
   const color =
-    kind === 'ghost' ? 'rgba(200, 210, 230, 0.25)' : PIECE_COLORS[kind];
+    kind === 'ghost' ? 'rgba(0, 0, 0, 0.08)' : PIECE_COLORS[kind];
   ctx.fillStyle = color;
   ctx.fillRect(x + pad, y + pad, size - pad * 2, size - pad * 2);
   if (kind !== 'ghost') {
@@ -63,7 +63,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, board: Cell[][]): void {
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D): void {
-  ctx.strokeStyle = 'rgba(80, 90, 120, 0.35)';
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
   ctx.lineWidth = 1;
   for (let x = 0; x <= COLS; x++) {
     ctx.beginPath();
@@ -87,7 +87,7 @@ export function drawWell(
   canvas.width = WELL_W;
   canvas.height = WELL_H;
 
-  ctx.fillStyle = '#12151f';
+  ctx.fillStyle = '#fafafa';
   ctx.fillRect(0, 0, WELL_W, WELL_H);
 
   drawGrid(ctx);
@@ -111,8 +111,7 @@ export function drawPreview(
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d')!;
-  ctx.fillStyle = '#1a1f2e';
-  ctx.fillRect(0, 0, size, size);
+  ctx.clearRect(0, 0, size, size);
   if (!kind) return;
   const piece = { kind, rotation: 0, x: 0, y: 0 };
   const cells = getCells(piece);
