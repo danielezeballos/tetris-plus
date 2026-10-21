@@ -9,14 +9,21 @@ export interface LineClearCell {
 
 export interface LineClearEffect {
   cells: LineClearCell[];
+  rows: number[];
   elapsed: number;
   duration: number;
 }
 
 export function createLineClearEffect(
   cells: LineClearCell[],
+  rows: number[],
 ): LineClearEffect {
-  return { cells, elapsed: 0, duration: LINE_CLEAR_ANIM_MS };
+  return {
+    cells,
+    rows: [...rows].sort((a, b) => a - b),
+    elapsed: 0,
+    duration: LINE_CLEAR_ANIM_MS,
+  };
 }
 
 export function lineClearProgress(effect: LineClearEffect): number {

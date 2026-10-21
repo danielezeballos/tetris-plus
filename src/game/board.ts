@@ -51,10 +51,15 @@ export function findFullRows(board: Cell[][]): number[] {
   return rows;
 }
 
-export function clearLines(board: Cell[][]): number {
+export function isRowFull(board: Cell[][], y: number): boolean {
+  return board[y].every((c) => c !== null);
+}
+
+/** Remove specific row indices (bottom-up) then any other full rows. */
+export function clearFullRows(board: Cell[][]): number {
   let cleared = 0;
   for (let y = TOTAL_ROWS - 1; y >= 0; y--) {
-    if (board[y].every((c) => c !== null)) {
+    if (isRowFull(board, y)) {
       board.splice(y, 1);
       board.unshift(Array.from({ length: COLS }, () => null));
       cleared++;
@@ -62,6 +67,23 @@ export function clearLines(board: Cell[][]): number {
     }
   }
   return cleared;
+}
+
+export function removeRows(board: Cell[][], rows: number[]): number {
+  const unique = [...new Set(rows)].sort((a, b) => b - a);
+  let removed = 0;
+  for (const y of unique) {
+    if (y < 0 || y >= board.length) continue;
+    board.splice(y, 1);
+    board.unshift(Array.from({ length: COLS }, () => null));
+    removed++;
+  }
+  return removed;
+}
+
+/** @deprecated alias */
+export function clearLines(board: Cell[][]): number {
+  return clearFullRows(board);
 }
 
 export function ghostY(board: Cell[][], piece: ActivePiece): number {

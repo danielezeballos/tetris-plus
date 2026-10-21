@@ -64,6 +64,15 @@ describe('collides', () => {
 });
 
 describe('clearLines', () => {
+  it('removes two adjacent full rows in one pass', () => {
+    const board = createBoard();
+    for (let y = TOTAL_ROWS - 2; y < TOTAL_ROWS; y++) {
+      for (let x = 0; x < COLS; x++) board[y][x] = 'I';
+    }
+    expect(clearLines(board)).toBe(2);
+    expect(board.every((row) => row.every((c) => c === null))).toBe(true);
+  });
+
   it('removes full rows and drops rows above with no stray cells', () => {
     const board = createBoard();
     for (let x = 0; x < COLS; x++) {

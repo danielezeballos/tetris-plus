@@ -1,7 +1,8 @@
 import { SevenBag } from './bag';
 import {
-  clearLines,
+  clearFullRows,
   collides,
+  removeRows,
   createBoard,
   findFullRows,
   ghostY,
@@ -136,6 +137,7 @@ function collectRowCells(
 }
 
 function finishSpawnAfterLock(state: GameState): void {
+  clearFullRows(state.board);
   if (!spawnFromQueue(state)) {
     state.phase = 'gameover';
     sounds.gameOver();
@@ -156,15 +158,23 @@ function settlePiece(state: GameState): void {
   applyLineClear(state, fullRows.length);
   state.lineClear = createLineClearEffect(
     collectRowCells(state.board, fullRows),
+    fullRows,
   );
+}
+
+function commitLineClear(state: GameState): void {
+  if (!state.lineClear) return;
+  const { rows } = state.lineClear;
+  removeRows(state.board, rows);
+  clearFullRows(state.board);
+  state.lineClear = null;
 }
 
 export function advanceLineClear(state: GameState, dtMs: number): void {
   if (!state.lineClear || state.phase !== 'playing') return;
   state.lineClear.elapsed += dtMs;
   if (state.lineClear.elapsed < state.lineClear.duration) return;
-  clearLines(state.board);
-  state.lineClear = null;
+  commitLineClear(state);
   if (!state.active) {
     finishSpawnAfterLock(state);
   }
