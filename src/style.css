@@ -6,6 +6,17 @@
   --muted: #8a8a8a;
   --line: #e6e6e6;
   --well-bg: #fafafa;
+  --overlay-bg: rgba(255, 255, 255, 0.88);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f1117;
+  --text: #e8ecf4;
+  --muted: #8b95a8;
+  --line: #2a3144;
+  --well-bg: #161b28;
+  --overlay-bg: rgba(15, 17, 23, 0.9);
 }
 
 * {
@@ -99,7 +110,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--overlay-bg);
 }
 
 .overlay.hidden {
@@ -151,6 +162,14 @@ body {
   display: block;
 }
 
+.page-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
 .hint {
   text-align: center;
   color: var(--muted);
@@ -158,6 +177,22 @@ body {
   line-height: 1.5;
   max-width: 36rem;
   margin: 0;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  font-size: 0.6875rem;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
 }
 
 .mobile-only {

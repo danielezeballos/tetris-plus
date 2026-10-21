@@ -4,8 +4,18 @@ import { getGhostPiece } from './engine';
 import type { Cell } from './board';
 import { getCells, type ActivePiece } from './tetromino';
 import type { PieceKind } from './constants';
+import { isDarkTheme } from '../theme';
 
 const CELL = 28;
+
+function wellPalette() {
+  const dark = isDarkTheme();
+  return {
+    fill: dark ? '#161b28' : '#fafafa',
+    grid: dark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.06)',
+    ghost: dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+  };
+}
 const WELL_W = COLS * CELL;
 const WELL_H = VISIBLE_ROWS * CELL;
 
@@ -21,8 +31,8 @@ function drawCell(
   size: number,
 ): void {
   const pad = 2;
-  const color =
-    kind === 'ghost' ? 'rgba(0, 0, 0, 0.08)' : PIECE_COLORS[kind];
+  const { ghost } = wellPalette();
+  const color = kind === 'ghost' ? ghost : PIECE_COLORS[kind];
   ctx.fillStyle = color;
   ctx.fillRect(x + pad, y + pad, size - pad * 2, size - pad * 2);
   if (kind !== 'ghost') {
@@ -63,7 +73,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, board: Cell[][]): void {
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D): void {
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
+  ctx.strokeStyle = wellPalette().grid;
   ctx.lineWidth = 1;
   for (let x = 0; x <= COLS; x++) {
     ctx.beginPath();
@@ -87,7 +97,7 @@ export function drawWell(
   canvas.width = WELL_W;
   canvas.height = WELL_H;
 
-  ctx.fillStyle = '#fafafa';
+  ctx.fillStyle = wellPalette().fill;
   ctx.fillRect(0, 0, WELL_W, WELL_H);
 
   drawGrid(ctx);

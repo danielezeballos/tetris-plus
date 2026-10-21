@@ -1,5 +1,13 @@
 import './style.css';
 import {
+  initTheme,
+  isDarkTheme,
+  themeToggleLabel,
+  toggleTheme,
+} from './theme';
+
+initTheme();
+import {
   createInitialState,
   startGame,
   togglePause,
@@ -54,7 +62,10 @@ app.innerHTML = `
         </div>
       </aside>
     </main>
-    <p class="hint desktop-only">Enter start · Esc pause · Arrows move · Space drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
+    <footer class="page-foot">
+      <p class="hint desktop-only">Enter start · Esc pause · Arrows move · Space drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
+      <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false"></button>
+    </footer>
   </div>
 `;
 
@@ -65,6 +76,20 @@ const overlay = document.querySelector<HTMLDivElement>('#overlay')!;
 const overlayTitle = document.querySelector<HTMLHeadingElement>('#overlay-title')!;
 const overlayBody = document.querySelector<HTMLParagraphElement>('#overlay-body')!;
 const overlayBtn = document.querySelector<HTMLButtonElement>('#overlay-btn')!;
+const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle')!;
+
+function syncThemeButton(): void {
+  const dark = isDarkTheme();
+  themeToggle.textContent = themeToggleLabel(dark ? 'dark' : 'light');
+  themeToggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
+}
+
+syncThemeButton();
+themeToggle.addEventListener('click', () => {
+  toggleTheme();
+  syncThemeButton();
+  render();
+});
 
 for (let i = 0; i < 5; i++) {
   const c = document.createElement('canvas');
