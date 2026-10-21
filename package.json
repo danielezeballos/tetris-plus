@@ -6,8 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "start": "tsx server/production-server.ts",
     "preview": "vite preview",
     "test": "vitest run"
+  },
+  "dependencies": {
+    "tsx": "^4.19.4"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "devDependencies": {
     "typescript": "~6.0.3",

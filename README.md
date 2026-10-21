@@ -20,6 +20,18 @@ npm run build
 npm run preview
 ```
 
+## Production
+
+```bash
+npm ci
+npm run build
+npm start
+```
+
+Listens on `0.0.0.0` and `PORT` (default `47281`). Serves the Vite `dist/` bundle and `GET`/`POST` `/api/leaderboards` from one Node process.
+
+Leaderboard JSON is stored at `$DATA_DIR/leaderboards.json` (`DATA_DIR` defaults to `./data`). On Railway, mount a volume at `/data` and set `DATA_DIR=/data` (see `railway.toml` / `railway.json`).
+
 ## Controls
 
 | Input | Action |
