@@ -437,33 +437,58 @@ body {
   color: var(--text);
 }
 
-/* Ko-fi: tip panel only via footer Support — never show their floating chip */
-.kofi-overlay-host {
-  position: fixed !important;
-  left: -10000px !important;
-  top: -10000px !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: hidden !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
+.kofi-support-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.5rem, 3vw, 1.5rem);
 }
 
-.floatingchat-container-wrap,
-.floatingchat-container-wrap-mobi,
-iframe.floatingchat-container,
-iframe.floatingchat-container-mobi {
-  position: fixed !important;
-  left: -10000px !important;
-  bottom: auto !important;
-  width: 1px !important;
-  height: 1px !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  pointer-events: none !important;
+.kofi-support-dialog.hidden {
+  display: none;
+}
+
+.kofi-support-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay-bg);
+}
+
+.kofi-support-panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 22rem);
+  max-height: min(90dvh, 34rem);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme='dark'] .kofi-support-panel {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.kofi-support-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.kofi-support-iframe {
+  display: block;
+  width: 100%;
+  height: min(28rem, 70dvh);
+  border: 0;
+  background: var(--well-bg);
 }
 
 #hold-canvas {
