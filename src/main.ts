@@ -18,6 +18,7 @@ import {
   themeToggleLabel,
   toggleTheme,
 } from './theme';
+import { bindKofiSupport } from './kofi-support';
 import {
   fetchLeaderboards,
   formatLeaderboardError,
@@ -116,6 +117,9 @@ app.innerHTML = `
             <button type="button" id="customize-reset" class="theme-toggle customize-reset">Reset defaults</button>
           </div>
         </div>
+        <button type="button" id="support-toggle" class="theme-toggle">
+          Support
+        </button>
       </div>
     </footer>
   </div>
@@ -135,6 +139,7 @@ const leaderboardsEl = document.querySelector<HTMLDivElement>('#leaderboards')!;
 const lbAllTime = document.querySelector<HTMLOListElement>('#lb-alltime')!;
 const lbToday = document.querySelector<HTMLOListElement>('#lb-today')!;
 const lbRetry = document.querySelector<HTMLButtonElement>('#lb-retry')!;
+const supportToggle = document.querySelector<HTMLButtonElement>('#support-toggle')!;
 const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle')!;
 const soundToggle = document.querySelector<HTMLButtonElement>('#sound-toggle')!;
 
@@ -166,6 +171,7 @@ app.addEventListener(
   true,
 );
 
+bindKofiSupport(supportToggle);
 syncThemeButton();
 syncSoundButton();
 themeToggle.addEventListener('click', () => {
