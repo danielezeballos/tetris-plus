@@ -526,38 +526,15 @@ body {
 .kofi-support-iframe {
   display: block;
   width: 100%;
-  height: 520px;
+  height: 700px;
   margin-top: -20px;
   border: 0;
   vertical-align: top;
   background: transparent;
 }
 
-.kofi-support-pay {
-  flex-shrink: 0;
-  padding: 0.75rem 1rem 0.85rem;
-  border-top: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.kofi-support-pay-hint {
-  margin: 0;
-  font-size: 0.6875rem;
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-.kofi-support-pay-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-}
-
-.kofi-support-powered {
-  margin: 0;
-  text-align: center;
+.kofi-support-panel--tall .kofi-support-iframe {
+  margin-top: 0;
 }
 
 #hold-canvas {
