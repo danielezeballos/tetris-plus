@@ -1,113 +1,147 @@
-const KO_FI_EMBED_URL =
-  'https://ko-fi.com/tetrisplus/?hidefeed=true&widget=true&embed=true';
+const KO_FI_PAGE = 'tetrisplus';
+const KO_FI_HOST_ID = 'kofi-overlay-host';
+const SCRIPT_URL = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
 
 const DIALOG_ID = 'kofi-support-dialog';
-/** Shift embed up to hide Ko-fi’s broken cover strip; profile starts at ~20px. */
-const COVER_SHIFT_PX = 20;
-/** Visible window: profile through “Powered by Ko-fi” (~560px in embed coords). */
-const TIP_VIEW_HEIGHT = 552;
-const TIP_IFRAME_HEIGHT = 700;
-const PAYMENT_IFRAME_MAX = 980;
 
-let resizeListenerBound = false;
-let embedLoadCount = 0;
-
-function isKofiOrigin(origin: string): boolean {
-  try {
-    return new URL(origin).hostname === 'ko-fi.com' || origin.endsWith('.ko-fi.com');
-  } catch {
-    return false;
+declare global {
+  interface Window {
+    kofiWidgetOverlay?: {
+      draw: (
+        pageId: string,
+        config: Record<string, string>,
+        containerId?: string | null,
+      ) => void;
+    };
   }
 }
 
-function parseEmbedHeight(data: unknown): number | null {
-  if (typeof data === 'number' && data > 0) return data;
-  if (!data || typeof data !== 'object') return null;
-  const o = data as Record<string, unknown>;
-  for (const key of ['height', 'h', 'frameHeight', 'frame_height']) {
-    const v = o[key];
-    if (typeof v === 'number' && v > 0) return v;
-  }
-  return null;
+let kofiReady = false;
+let chipObserver: MutationObserver | null = null;
+
+function kofiConfig(): Record<string, string> {
+  return {
+    type: 'floating-chat',
+    'floating-chat.donateButton.text': 'Support',
+    'floating-chat.donateButton.background-color': '#1a1a1a',
+    'floating-chat.donateButton.text-color': '#ffffff',
+  };
 }
 
-function setIframeHeight(iframe: HTMLIFrameElement, px: number): void {
-  const h = Math.round(px);
-  iframe.style.height = `${h}px`;
-}
-
-function setTipViewport(
-  wrap: HTMLElement,
-  iframe: HTMLIFrameElement,
-): void {
-  wrap.style.height = `${TIP_VIEW_HEIGHT}px`;
-  wrap.style.maxHeight = '';
-  wrap.style.overflowY = 'hidden';
-  iframe.style.marginTop = `-${COVER_SHIFT_PX}px`;
-  setIframeHeight(iframe, TIP_IFRAME_HEIGHT);
-}
-
-function enterPaymentLayout(
-  root: HTMLElement,
-  contentHeight: number,
-): void {
-  const iframe = root.querySelector<HTMLIFrameElement>('.kofi-support-iframe');
-  const wrap = root.querySelector<HTMLElement>('.kofi-support-embed-wrap');
-  const body = root.querySelector<HTMLElement>('.kofi-support-body');
-  const panel = root.querySelector<HTMLElement>('.kofi-support-panel');
-  if (!iframe || !wrap || !body || !panel) return;
-  const tall = Math.min(Math.max(contentHeight, TIP_VIEW_HEIGHT + 80), PAYMENT_IFRAME_MAX);
-  setIframeHeight(iframe, tall);
-  iframe.style.marginTop = '0';
-  wrap.style.height = `${Math.min(tall, 720)}px`;
-  wrap.style.maxHeight = 'min(72dvh, 720px)';
-  wrap.style.overflowY = 'auto';
-  panel.classList.add('kofi-support-panel--tall');
-  body.classList.add('kofi-support-body--scroll');
-  syncPanelViewport(panel, body);
-}
-
-function resetTipStepLayout(root: HTMLElement): void {
-  const iframe = root.querySelector<HTMLIFrameElement>('.kofi-support-iframe');
-  const wrap = root.querySelector<HTMLElement>('.kofi-support-embed-wrap');
-  const body = root.querySelector<HTMLElement>('.kofi-support-body');
-  const panel = root.querySelector<HTMLElement>('.kofi-support-panel');
-  if (!iframe || !wrap || !body || !panel) return;
-  setTipViewport(wrap, iframe);
-  body.scrollTop = 0;
-  wrap.scrollTop = 0;
-  body.classList.remove('kofi-support-body--scroll');
-  panel.classList.remove('kofi-support-panel--tall');
-  syncPanelViewport(panel, body);
-}
-
-function syncPanelViewport(panel: HTMLElement, body: HTMLElement): void {
-  const cap = Math.max(280, window.innerHeight - 20);
-  const natural = panel.getBoundingClientRect().height;
-  if (natural > cap) {
-    panel.classList.add('kofi-support-panel--constrained');
-    panel.style.maxHeight = `${cap}px`;
-    body.classList.add('kofi-support-body--scroll');
-  } else {
-    panel.classList.remove('kofi-support-panel--constrained');
-    panel.style.maxHeight = '';
-    if (!panel.classList.contains('kofi-support-panel--tall')) {
-      body.classList.remove('kofi-support-body--scroll');
-    }
-  }
-}
-
-function bindKofiResizeMessages(root: HTMLDivElement): void {
-  if (resizeListenerBound) return;
-  resizeListenerBound = true;
-  window.addEventListener('message', (event) => {
-    if (!isKofiOrigin(event.origin)) return;
-    const next = parseEmbedHeight(event.data);
-    if (!next || next <= TIP_VIEW_HEIGHT + 16) return;
-    const dialog = document.getElementById(DIALOG_ID);
-    if (!dialog || dialog.classList.contains('hidden')) return;
-    enterPaymentLayout(dialog, next);
+function hideFloatingChip(): void {
+  const selectors =
+    '.floatingchat-container-wrap, .floatingchat-container-wrap-mobi, iframe.floatingchat-container, iframe.floatingchat-container-mobi';
+  document.querySelectorAll<HTMLElement>(selectors).forEach((el) => {
+    el.style.setProperty('position', 'absolute', 'important');
+    el.style.setProperty('left', '-10000px', 'important');
+    el.style.setProperty('width', '1px', 'important');
+    el.style.setProperty('height', '1px', 'important');
+    el.style.setProperty('opacity', '0', 'important');
+    el.style.setProperty('pointer-events', 'none', 'important');
+    el.style.setProperty('overflow', 'hidden', 'important');
   });
+}
+
+function ensureChipHidden(): void {
+  hideFloatingChip();
+  if (chipObserver) return;
+  chipObserver = new MutationObserver(() => hideFloatingChip());
+  chipObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['style', 'class'],
+  });
+}
+
+function stylePopupInPanel(): void {
+  const popup = document.querySelector<HTMLElement>(
+    `#${KO_FI_HOST_ID} .floating-chat-kofi-popup-iframe`,
+  );
+  if (!popup) return;
+  popup.style.setProperty('position', 'relative', 'important');
+  popup.style.setProperty('left', 'auto', 'important');
+  popup.style.setProperty('bottom', 'auto', 'important');
+  popup.style.setProperty('top', 'auto', 'important');
+  popup.style.setProperty('width', '100%', 'important');
+  popup.style.setProperty('max-width', '27.5rem', 'important');
+  popup.style.setProperty('margin', '0 auto', 'important');
+  popup.style.setProperty(
+    'height',
+    'min(72dvh, 690px)',
+    'important',
+  );
+  popup.style.setProperty('opacity', '1', 'important');
+  popup.style.setProperty('z-index', '1', 'important');
+}
+
+function initKofiDraw(): void {
+  window.kofiWidgetOverlay?.draw(KO_FI_PAGE, kofiConfig(), KO_FI_HOST_ID);
+  ensureChipHidden();
+  stylePopupInPanel();
+}
+
+function loadKofiOverlay(): Promise<void> {
+  if (kofiReady) return Promise.resolve();
+  ensureChipHidden();
+  return new Promise((resolve, reject) => {
+    if (window.kofiWidgetOverlay) {
+      initKofiDraw();
+      kofiReady = true;
+      resolve();
+      return;
+    }
+    const existing = document.querySelector(`script[src="${SCRIPT_URL}"]`);
+    const finish = () => {
+      initKofiDraw();
+      kofiReady = true;
+      resolve();
+    };
+    if (existing) {
+      if (window.kofiWidgetOverlay) finish();
+      else {
+        existing.addEventListener('load', finish);
+        existing.addEventListener('error', () => reject(new Error('kofi script failed')));
+      }
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = SCRIPT_URL;
+    script.async = true;
+    script.onload = finish;
+    script.onerror = () => reject(new Error('kofi script failed'));
+    document.body.appendChild(script);
+  });
+}
+
+function openKofiPopup(): void {
+  const iframe = document.querySelector<HTMLIFrameElement>(
+    'iframe.floatingchat-container',
+  );
+  const doc = iframe?.contentDocument ?? iframe?.contentWindow?.document ?? null;
+  const donate = doc?.querySelector<HTMLElement>('.floatingchat-donate-button');
+  donate?.click();
+  window.setTimeout(() => {
+    hideFloatingChip();
+    stylePopupInPanel();
+  }, 50);
+  window.setTimeout(stylePopupInPanel, 400);
+  window.setTimeout(stylePopupInPanel, 1200);
+}
+
+function closeKofiPopup(): void {
+  const closer = document.querySelector<HTMLElement>(
+    `#${KO_FI_HOST_ID} .floating-chat-kofi-popup-iframe-closer`,
+  );
+  closer?.click();
+  const popup = document.querySelector<HTMLElement>(
+    `#${KO_FI_HOST_ID} .floating-chat-kofi-popup-iframe`,
+  );
+  if (popup) {
+    popup.style.height = '0';
+    popup.style.width = '0';
+    popup.style.opacity = '0';
+  }
 }
 
 function getDialog(): HTMLDivElement {
@@ -140,47 +174,16 @@ function getDialog(): HTMLDivElement {
   closeBtn.className = 'theme-toggle kofi-support-close';
   closeBtn.textContent = 'Close';
 
-  const iframe = document.createElement('iframe');
-  iframe.className = 'kofi-support-iframe';
-  iframe.title = 'Ko-fi — tetrisplus';
-  iframe.setAttribute('loading', 'lazy');
-  iframe.setAttribute('allow', 'payment');
-  iframe.setAttribute('scrolling', 'auto');
-  setIframeHeight(iframe, TIP_IFRAME_HEIGHT);
-
   const body = document.createElement('div');
   body.className = 'kofi-support-body';
 
-  const wrap = document.createElement('div');
-  wrap.className = 'kofi-support-embed-wrap';
-  setTipViewport(wrap, iframe);
-  wrap.append(iframe);
-
-  const maybeExpandForPayment = (): void => {
-    if (root.classList.contains('hidden')) return;
-    const panel = root.querySelector('.kofi-support-panel');
-    if (panel?.classList.contains('kofi-support-panel--tall')) return;
-    enterPaymentLayout(root, PAYMENT_IFRAME_MAX);
-  };
-
-  wrap.addEventListener(
-    'wheel',
-    () => {
-      maybeExpandForPayment();
-    },
-    { passive: true },
-  );
-
-  iframe.addEventListener('load', () => {
-    embedLoadCount += 1;
-    if (embedLoadCount <= 1) return;
-    const dialog = document.getElementById(DIALOG_ID);
-    if (!dialog || dialog.classList.contains('hidden')) return;
-    enterPaymentLayout(dialog, PAYMENT_IFRAME_MAX);
-  });
+  const host = document.createElement('div');
+  host.id = KO_FI_HOST_ID;
+  host.className = 'kofi-overlay-host';
+  host.setAttribute('aria-hidden', 'true');
 
   head.append(title, closeBtn);
-  body.append(wrap);
+  body.append(host);
   panel.append(head, body);
   root.append(backdrop, panel);
   document.body.append(root);
@@ -194,37 +197,28 @@ function getDialog(): HTMLDivElement {
     if (e.key === 'Escape') close();
   });
 
-  bindKofiResizeMessages(root);
-  window.addEventListener('resize', () => {
-    if (root.classList.contains('hidden')) return;
-    const b = root.querySelector<HTMLElement>('.kofi-support-body');
-    const p = root.querySelector<HTMLElement>('.kofi-support-panel');
-    if (b && p) syncPanelViewport(p, b);
-  });
-
   return root;
 }
 
 function hideKofiSupportDialog(): void {
   const root = document.getElementById(DIALOG_ID);
   if (!root) return;
+  closeKofiPopup();
   root.classList.add('hidden');
   document.body.classList.remove('kofi-support-open');
 }
 
 function showKofiSupportDialog(): void {
   const root = getDialog();
-  const iframe = root.querySelector<HTMLIFrameElement>('.kofi-support-iframe');
-  embedLoadCount = iframe?.src ? 1 : 0;
-  if (iframe && !iframe.src) {
-    iframe.src = KO_FI_EMBED_URL;
-  }
-  resetTipStepLayout(root);
   root.classList.remove('hidden');
   document.body.classList.add('kofi-support-open');
-  window.requestAnimationFrame(() => resetTipStepLayout(root));
+  void loadKofiOverlay().then(() => {
+    openKofiPopup();
+  });
 }
 
 export function bindKofiSupport(button: HTMLButtonElement): void {
+  ensureChipHidden();
+  void loadKofiOverlay();
   button.addEventListener('click', () => showKofiSupportDialog());
 }

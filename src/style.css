@@ -495,46 +495,65 @@ body {
 }
 
 .kofi-support-body {
-  flex: 0 0 auto;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  padding: 0 0 0.35rem;
-  background: #ffffff;
-  border-radius: 0 0 10px 10px;
-}
-
-.kofi-support-embed-wrap {
-  overflow: hidden;
-  width: 100%;
-}
-
-.kofi-support-body--scroll {
   flex: 1 1 auto;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-}
-
-.kofi-support-panel--constrained {
-  height: auto;
+  padding: 0;
+  background: #ffffff;
+  border-radius: 0 0 10px 10px;
 }
 
 :root[data-theme='dark'] .kofi-support-body {
   background: #000000;
 }
 
-.kofi-support-iframe {
-  display: block;
+.kofi-overlay-host {
+  position: relative;
   width: 100%;
-  height: 700px;
-  margin-top: -20px;
-  border: 0;
-  vertical-align: top;
-  background: transparent;
+  min-height: min(72dvh, 690px);
 }
 
-.kofi-support-panel--tall .kofi-support-iframe {
-  margin-top: 0;
+/* Never show Ko-fi’s floating chip — footer Support only */
+.kofi-overlay-host .floatingchat-container-wrap,
+.kofi-overlay-host .floatingchat-container-wrap-mobi,
+.kofi-overlay-host iframe.floatingchat-container,
+.kofi-overlay-host iframe.floatingchat-container-mobi {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+body.kofi-support-open .kofi-overlay-host .floating-chat-kofi-popup-iframe {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  max-width: 27.5rem !important;
+  margin: 0 auto !important;
+  height: min(72dvh, 690px) !important;
+  opacity: 1 !important;
+  z-index: 1 !important;
+}
+
+body.kofi-support-open .floating-chat-kofi-popup-iframe-notice,
+body.kofi-support-open .floating-chat-kofi-popup-iframe-notice-mobi,
+body.kofi-support-open .floating-chat-kofi-popup-iframe-closer {
+  display: none !important;
+}
+
+.kofi-overlay-host .floating-chat-kofi-popup-iframe-container,
+.kofi-overlay-host .floating-chat-kofi-popup-iframe-container iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
 }
 
 #hold-canvas {
