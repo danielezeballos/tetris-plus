@@ -2,7 +2,10 @@ const KO_FI_EMBED_URL =
   'https://ko-fi.com/tetrisplus/?hidefeed=true&widget=true&embed=true';
 
 const DIALOG_ID = 'kofi-support-dialog';
-/** Ko-fi’s first-step embed height (tip form + footer, no dead space). */
+/** Shift embed up to hide Ko-fi’s broken cover strip; profile starts at ~20px. */
+const COVER_SHIFT_PX = 20;
+/** Visible window: profile through “Powered by Ko-fi” (~560px in embed coords). */
+const TIP_VIEW_HEIGHT = 552;
 const TIP_IFRAME_HEIGHT = 700;
 const PAYMENT_IFRAME_MAX = 980;
 
@@ -32,13 +35,26 @@ function setIframeHeight(iframe: HTMLIFrameElement, px: number): void {
   iframe.style.height = `${h}px`;
 }
 
+function setTipViewport(
+  wrap: HTMLElement,
+  iframe: HTMLIFrameElement,
+): void {
+  wrap.style.height = `${TIP_VIEW_HEIGHT}px`;
+  wrap.style.maxHeight = '';
+  wrap.style.overflowY = 'hidden';
+  iframe.style.marginTop = `-${COVER_SHIFT_PX}px`;
+  setIframeHeight(iframe, TIP_IFRAME_HEIGHT);
+}
+
 function resetTipStepLayout(root: HTMLElement): void {
   const iframe = root.querySelector<HTMLIFrameElement>('.kofi-support-iframe');
+  const wrap = root.querySelector<HTMLElement>('.kofi-support-embed-wrap');
   const body = root.querySelector<HTMLElement>('.kofi-support-body');
   const panel = root.querySelector<HTMLElement>('.kofi-support-panel');
-  if (!iframe || !body || !panel) return;
-  setIframeHeight(iframe, TIP_IFRAME_HEIGHT);
+  if (!iframe || !wrap || !body || !panel) return;
+  setTipViewport(wrap, iframe);
   body.scrollTop = 0;
+  wrap.scrollTop = 0;
   body.classList.remove('kofi-support-body--scroll');
   panel.classList.remove('kofi-support-panel--tall');
   syncPanelViewport(panel, body);
@@ -72,8 +88,14 @@ function bindKofiResizeMessages(root: HTMLDivElement): void {
     const iframe = dialog.querySelector<HTMLIFrameElement>('.kofi-support-iframe');
     const body = dialog.querySelector<HTMLElement>('.kofi-support-body');
     const panel = dialog.querySelector<HTMLElement>('.kofi-support-panel');
-    if (!iframe || !body || !panel) return;
-    setIframeHeight(iframe, Math.min(next + 20, PAYMENT_IFRAME_MAX));
+    const wrap = dialog.querySelector<HTMLElement>('.kofi-support-embed-wrap');
+    if (!iframe || !wrap || !body || !panel) return;
+    const tall = Math.min(next + 20, PAYMENT_IFRAME_MAX);
+    setIframeHeight(iframe, tall);
+    iframe.style.marginTop = '0';
+    wrap.style.height = `${Math.min(tall, PAYMENT_IFRAME_MAX)}px`;
+    wrap.style.maxHeight = 'min(72dvh, 720px)';
+    wrap.style.overflowY = 'auto';
     panel.classList.add('kofi-support-panel--tall');
     body.classList.add('kofi-support-body--scroll');
     syncPanelViewport(panel, body);
@@ -121,8 +143,13 @@ function getDialog(): HTMLDivElement {
   const body = document.createElement('div');
   body.className = 'kofi-support-body';
 
+  const wrap = document.createElement('div');
+  wrap.className = 'kofi-support-embed-wrap';
+  setTipViewport(wrap, iframe);
+  wrap.append(iframe);
+
   head.append(title, closeBtn);
-  body.append(iframe);
+  body.append(wrap);
   panel.append(head, body);
   root.append(backdrop, panel);
   document.body.append(root);

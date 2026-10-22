@@ -498,9 +498,14 @@ body {
   flex: 0 0 auto;
   overflow-x: hidden;
   overflow-y: hidden;
-  padding: 0.65rem 0 0.5rem;
+  padding: 0 0 0.35rem;
   background: #ffffff;
   border-radius: 0 0 10px 10px;
+}
+
+.kofi-support-embed-wrap {
+  overflow: hidden;
+  width: 100%;
 }
 
 .kofi-support-body--scroll {
@@ -522,9 +527,14 @@ body {
   display: block;
   width: 100%;
   height: 700px;
+  margin-top: -20px;
   border: 0;
   vertical-align: top;
   background: transparent;
+}
+
+.kofi-support-panel--tall .kofi-support-iframe {
+  margin-top: 0;
 }
 
 #hold-canvas {
