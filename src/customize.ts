@@ -13,6 +13,21 @@ export function bindCustomizePanel(onColorsChange: () => void): void {
   const rows = document.querySelector<HTMLDivElement>('#customize-rows')!;
 
   const inputs = new Map<PieceKind, HTMLInputElement>();
+  let colorPickerGraceUntil = 0;
+
+  const isOpen = (): boolean => !panel.classList.contains('hidden');
+
+  const colorPickerEngaged = (): boolean => {
+    const active = document.activeElement;
+    if (
+      active instanceof HTMLInputElement &&
+      active.type === 'color' &&
+      panel.contains(active)
+    ) {
+      return true;
+    }
+    return Date.now() < colorPickerGraceUntil;
+  };
 
   for (const kind of PIECE_KINDS) {
     const row = document.createElement('div');
@@ -28,6 +43,12 @@ export function bindCustomizePanel(onColorsChange: () => void): void {
     input.addEventListener('input', () => {
       setPieceColor(kind, input.value);
       onColorsChange();
+    });
+    input.addEventListener('focus', () => {
+      colorPickerGraceUntil = Date.now() + 800;
+    });
+    input.addEventListener('blur', () => {
+      colorPickerGraceUntil = Date.now() + 800;
     });
     row.append(label, input);
     rows.appendChild(row);
@@ -47,6 +68,10 @@ export function bindCustomizePanel(onColorsChange: () => void): void {
   };
 
   openBtn.addEventListener('click', () => {
+    if (isOpen()) {
+      setOpen(false);
+      return;
+    }
     syncInputs();
     setOpen(true);
   });
@@ -57,8 +82,21 @@ export function bindCustomizePanel(onColorsChange: () => void): void {
     onColorsChange();
   });
 
+  document.addEventListener(
+    'pointerdown',
+    (e) => {
+      if (!isOpen()) return;
+      if (colorPickerEngaged()) return;
+      const t = e.target;
+      if (!(t instanceof Node)) return;
+      if (panel.contains(t) || openBtn.contains(t)) return;
+      setOpen(false);
+    },
+    true,
+  );
+
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !panel.classList.contains('hidden')) {
+    if (e.key === 'Escape' && isOpen()) {
       setOpen(false);
     }
   });
