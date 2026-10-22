@@ -461,9 +461,10 @@ body {
   position: relative;
   z-index: 1;
   width: min(100%, 22rem);
-  max-height: min(90dvh, 34rem);
+  max-height: calc(100dvh - 1rem);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background: var(--bg);
   border: 1px solid var(--line);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
@@ -483,10 +484,20 @@ body {
   flex-shrink: 0;
 }
 
+.kofi-support-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ko-fi’s embed docs use ~712px for the full tip form */
 .kofi-support-iframe {
   display: block;
   width: 100%;
-  height: min(28rem, 70dvh);
+  height: 712px;
+  min-height: 712px;
   border: 0;
   background: var(--well-bg);
 }

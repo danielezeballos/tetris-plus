@@ -39,8 +39,12 @@ function getDialog(): HTMLDivElement {
   iframe.setAttribute('loading', 'lazy');
   iframe.setAttribute('allow', 'payment');
 
+  const body = document.createElement('div');
+  body.className = 'kofi-support-body';
+
   head.append(title, closeBtn);
-  panel.append(head, iframe);
+  body.append(iframe);
+  panel.append(head, body);
   root.append(backdrop, panel);
   document.body.append(root);
 
