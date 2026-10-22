@@ -460,28 +460,37 @@ body {
 .kofi-support-panel {
   position: relative;
   z-index: 1;
-  width: min(100%, 22rem);
-  max-height: calc(100dvh - 1rem);
+  width: min(100%, 27.5rem);
+  max-height: calc(100dvh - 1.25rem);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--bg);
+  border-radius: 10px;
+  background: #ffffff;
   border: 1px solid var(--line);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
 }
 
 :root[data-theme='dark'] .kofi-support-panel {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  background: #000000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
 }
 
 .kofi-support-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.65rem 0.75rem;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
+}
+
+.kofi-support-head .label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--muted);
 }
 
 .kofi-support-body {
@@ -490,16 +499,23 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  background: #ffffff;
+  border-radius: 0 0 10px 10px;
 }
 
-/* Ko-fi’s embed docs use ~712px for the full tip form */
+:root[data-theme='dark'] .kofi-support-body {
+  background: #000000;
+}
+
+/* Tall enough for tip + payment steps and Ko-fi footer inside the embed */
 .kofi-support-iframe {
   display: block;
   width: 100%;
-  height: 712px;
-  min-height: 712px;
+  height: 920px;
+  min-height: 920px;
   border: 0;
-  background: var(--well-bg);
+  vertical-align: top;
+  background: transparent;
 }
 
 #hold-canvas {

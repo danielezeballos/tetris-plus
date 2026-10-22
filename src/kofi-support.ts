@@ -26,7 +26,7 @@ function getDialog(): HTMLDivElement {
 
   const title = document.createElement('span');
   title.className = 'label';
-  title.textContent = 'Support';
+  title.textContent = 'SUPPORT';
 
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
