@@ -1,7 +1,13 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
-    "buildCommand": "npm ci --include=dev && npm run build"
+    "builder": "NIXPACKS",
+    "buildCommand": "npm run build",
+    "nixpacksPlan": {
+      "variables": {
+        "NPM_CONFIG_PRODUCTION": "false"
+      }
+    }
   },
   "deploy": {
     "startCommand": "npm start",

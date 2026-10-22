@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm ci --include=dev && npm run build"
+buildCommand = "npm run build"
 
 [deploy]
 startCommand = "npm start"
@@ -10,3 +10,4 @@ restartPolicyType = "on_failure"
 
 [env]
 DATA_DIR = "/data"
+NPM_CONFIG_PRODUCTION = "false"
