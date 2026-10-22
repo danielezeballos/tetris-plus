@@ -2,6 +2,83 @@ const KO_FI_EMBED_URL =
   'https://ko-fi.com/tetrisplus/?hidefeed=true&widget=true&embed=true';
 
 const DIALOG_ID = 'kofi-support-dialog';
+/** Ko-fi’s first-step embed height (tip form + footer, no dead space). */
+const TIP_IFRAME_HEIGHT = 700;
+const PAYMENT_IFRAME_MAX = 980;
+
+let resizeListenerBound = false;
+
+function isKofiOrigin(origin: string): boolean {
+  try {
+    return new URL(origin).hostname === 'ko-fi.com' || origin.endsWith('.ko-fi.com');
+  } catch {
+    return false;
+  }
+}
+
+function parseEmbedHeight(data: unknown): number | null {
+  if (typeof data === 'number' && data > 0) return data;
+  if (!data || typeof data !== 'object') return null;
+  const o = data as Record<string, unknown>;
+  for (const key of ['height', 'h', 'frameHeight', 'frame_height']) {
+    const v = o[key];
+    if (typeof v === 'number' && v > 0) return v;
+  }
+  return null;
+}
+
+function setIframeHeight(iframe: HTMLIFrameElement, px: number): void {
+  const h = Math.round(px);
+  iframe.style.height = `${h}px`;
+}
+
+function resetTipStepLayout(root: HTMLElement): void {
+  const iframe = root.querySelector<HTMLIFrameElement>('.kofi-support-iframe');
+  const body = root.querySelector<HTMLElement>('.kofi-support-body');
+  const panel = root.querySelector<HTMLElement>('.kofi-support-panel');
+  if (!iframe || !body || !panel) return;
+  setIframeHeight(iframe, TIP_IFRAME_HEIGHT);
+  body.scrollTop = 0;
+  body.classList.remove('kofi-support-body--scroll');
+  panel.classList.remove('kofi-support-panel--tall');
+  syncPanelViewport(panel, body);
+}
+
+function syncPanelViewport(panel: HTMLElement, body: HTMLElement): void {
+  const cap = Math.max(280, window.innerHeight - 20);
+  const natural = panel.getBoundingClientRect().height;
+  if (natural > cap) {
+    panel.classList.add('kofi-support-panel--constrained');
+    panel.style.maxHeight = `${cap}px`;
+    body.classList.add('kofi-support-body--scroll');
+  } else {
+    panel.classList.remove('kofi-support-panel--constrained');
+    panel.style.maxHeight = '';
+    if (!panel.classList.contains('kofi-support-panel--tall')) {
+      body.classList.remove('kofi-support-body--scroll');
+    }
+  }
+}
+
+function bindKofiResizeMessages(root: HTMLDivElement): void {
+  if (resizeListenerBound) return;
+  resizeListenerBound = true;
+  window.addEventListener('message', (event) => {
+    if (!isKofiOrigin(event.origin)) return;
+    const next = parseEmbedHeight(event.data);
+    if (!next || next <= TIP_IFRAME_HEIGHT + 32) return;
+    const dialog = document.getElementById(DIALOG_ID);
+    if (!dialog || dialog.classList.contains('hidden')) return;
+    const iframe = dialog.querySelector<HTMLIFrameElement>('.kofi-support-iframe');
+    const body = dialog.querySelector<HTMLElement>('.kofi-support-body');
+    const panel = dialog.querySelector<HTMLElement>('.kofi-support-panel');
+    if (!iframe || !body || !panel) return;
+    setIframeHeight(iframe, Math.min(next + 20, PAYMENT_IFRAME_MAX));
+    panel.classList.add('kofi-support-panel--tall');
+    body.classList.add('kofi-support-body--scroll');
+    syncPanelViewport(panel, body);
+  });
+}
 
 function getDialog(): HTMLDivElement {
   let root = document.getElementById(DIALOG_ID) as HTMLDivElement | null;
@@ -38,6 +115,8 @@ function getDialog(): HTMLDivElement {
   iframe.title = 'Ko-fi — tetrisplus';
   iframe.setAttribute('loading', 'lazy');
   iframe.setAttribute('allow', 'payment');
+  iframe.setAttribute('scrolling', 'auto');
+  setIframeHeight(iframe, TIP_IFRAME_HEIGHT);
 
   const body = document.createElement('div');
   body.className = 'kofi-support-body';
@@ -50,9 +129,19 @@ function getDialog(): HTMLDivElement {
 
   const close = () => hideKofiSupportDialog();
   closeBtn.addEventListener('click', close);
-  backdrop.addEventListener('click', close);
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) close();
+  });
   root.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close();
+  });
+
+  bindKofiResizeMessages(root);
+  window.addEventListener('resize', () => {
+    if (root.classList.contains('hidden')) return;
+    const b = root.querySelector<HTMLElement>('.kofi-support-body');
+    const p = root.querySelector<HTMLElement>('.kofi-support-panel');
+    if (b && p) syncPanelViewport(p, b);
   });
 
   return root;
@@ -71,8 +160,10 @@ function showKofiSupportDialog(): void {
   if (iframe && !iframe.src) {
     iframe.src = KO_FI_EMBED_URL;
   }
+  resetTipStepLayout(root);
   root.classList.remove('hidden');
   document.body.classList.add('kofi-support-open');
+  window.requestAnimationFrame(() => resetTipStepLayout(root));
 }
 
 export function bindKofiSupport(button: HTMLButtonElement): void {
