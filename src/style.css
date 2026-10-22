@@ -437,123 +437,19 @@ body {
   color: var(--text);
 }
 
-.kofi-support-dialog {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(0.5rem, 3vw, 1.5rem);
-}
-
-.kofi-support-dialog.hidden {
-  display: none;
-}
-
-.kofi-support-backdrop {
-  position: absolute;
-  inset: 0;
-  background: var(--overlay-bg);
-}
-
-.kofi-support-panel {
-  position: relative;
-  z-index: 1;
-  width: min(100%, 27.5rem);
-  height: fit-content;
-  max-height: calc(100dvh - 1.25rem);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-radius: 10px;
-  background: #ffffff;
-  border: 1px solid var(--line);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-}
-
-:root[data-theme='dark'] .kofi-support-panel {
-  background: #000000;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
-}
-
-.kofi-support-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid var(--line);
-  flex-shrink: 0;
-}
-
-.kofi-support-head .label {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
-.kofi-support-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 0;
-  background: #ffffff;
-  border-radius: 0 0 10px 10px;
-}
-
-:root[data-theme='dark'] .kofi-support-body {
-  background: #000000;
-}
-
-.kofi-overlay-host {
-  position: relative;
-  width: 100%;
-  min-height: min(72dvh, 690px);
-}
-
-/* Never show Ko-fi’s floating chip — footer Support only */
-.kofi-overlay-host .floatingchat-container-wrap,
-.kofi-overlay-host .floatingchat-container-wrap-mobi,
-.kofi-overlay-host iframe.floatingchat-container,
-.kofi-overlay-host iframe.floatingchat-container-mobi {
-  position: absolute !important;
-  left: -10000px !important;
+/* Ko-fi overlay: keep tip panel, hide their floating chip */
+.floatingchat-donate-button {
+  position: fixed !important;
   width: 1px !important;
   height: 1px !important;
+  margin: 0 !important;
+  padding: 0 !important;
   opacity: 0 !important;
   overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
   pointer-events: none !important;
-}
-
-body.kofi-support-open .kofi-overlay-host .floating-chat-kofi-popup-iframe {
-  position: relative !important;
-  left: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  top: auto !important;
-  width: 100% !important;
-  max-width: 27.5rem !important;
-  margin: 0 auto !important;
-  height: min(72dvh, 690px) !important;
-  opacity: 1 !important;
-  z-index: 1 !important;
-}
-
-body.kofi-support-open .floating-chat-kofi-popup-iframe-notice,
-body.kofi-support-open .floating-chat-kofi-popup-iframe-notice-mobi,
-body.kofi-support-open .floating-chat-kofi-popup-iframe-closer {
-  display: none !important;
-}
-
-.kofi-overlay-host .floating-chat-kofi-popup-iframe-container,
-.kofi-overlay-host .floating-chat-kofi-popup-iframe-container iframe {
-  width: 100% !important;
-  height: 100% !important;
-  border: 0;
 }
 
 #hold-canvas {
