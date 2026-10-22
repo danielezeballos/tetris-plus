@@ -122,6 +122,7 @@ app.innerHTML = `
         </button>
       </div>
     </footer>
+    <div id="kofi-overlay-host" class="kofi-overlay-host" aria-hidden="true"></div>
   </div>
 `;
 
