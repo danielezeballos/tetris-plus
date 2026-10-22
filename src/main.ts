@@ -118,7 +118,7 @@ app.innerHTML = `
           </div>
         </div>
         <button type="button" id="support-toggle" class="theme-toggle">
-          Support
+          Contribute
         </button>
       </div>
     </footer>
