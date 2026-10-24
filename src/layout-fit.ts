@@ -25,7 +25,37 @@ function capPreviewForAppWidth(wellCell: number): void {
   capPreviewCell(Math.max(4, Math.floor(sideBudget / 4)));
 }
 
+function narrowLayoutInView(): boolean {
+  const rect = appRect();
+  if (!rect) return false;
+  const selectors = [
+    '.panel-left',
+    '.panel-right .block:first-child',
+    '.panel-right .stats-block',
+    '.well-wrap',
+  ];
+  for (const sel of selectors) {
+    const el = document.querySelector(sel);
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 && r.height < 1) return false;
+    if (r.left < rect.left - 0.5 || r.right > rect.right + 0.5) {
+      return false;
+    }
+  }
+  const well = document.getElementById('well');
+  const foot = document.querySelector('.page-foot');
+  if (!well || !foot) return false;
+  if (well.getBoundingClientRect().bottom > foot.getBoundingClientRect().top + 0.5) {
+    return false;
+  }
+  return true;
+}
+
 function columnsInView(): boolean {
+  if (isNarrowViewport()) {
+    return narrowLayoutInView();
+  }
   const rect = appRect();
   if (!rect) return false;
   const selectors = ['.panel-left', '.well-wrap', '.panel-right'];
@@ -77,9 +107,13 @@ function pageOverflows(): boolean {
 function footerClearOfGame(): boolean {
   const foot = document.querySelector('.page-foot');
   const well = document.getElementById('well');
-  const panel = document.querySelector('.panel-right');
-  if (!foot || !well || !panel) return false;
+  if (!foot || !well) return false;
   const footTop = foot.getBoundingClientRect().top;
+  if (isNarrowViewport()) {
+    return footTop >= well.getBoundingClientRect().bottom - 0.5;
+  }
+  const panel = document.querySelector('.panel-right');
+  if (!panel) return false;
   const gameBottom = Math.max(
     well.getBoundingClientRect().bottom,
     panel.getBoundingClientRect().bottom,
@@ -89,6 +123,35 @@ function footerClearOfGame(): boolean {
 
 function isNarrowViewport(): boolean {
   return window.matchMedia('(max-width: 639px)').matches;
+}
+
+function narrowTopRowHeight(): number {
+  const layout = document.querySelector('.layout');
+  if (!layout) return 0;
+  const layoutTop = layout.getBoundingClientRect().top;
+  let bottom = layoutTop;
+  for (const sel of [
+    '.panel-left',
+    '.panel-right .block:first-child',
+    '.panel-right .stats-block',
+  ]) {
+    const el = document.querySelector(sel);
+    if (el) {
+      bottom = Math.max(bottom, el.getBoundingClientRect().bottom);
+    }
+  }
+  return bottom - layoutTop;
+}
+
+/** Vertical space available for the 20-row well on narrow layouts. */
+function narrowWellHeightBudget(): number {
+  const foot = document.querySelector('.page-foot');
+  const layout = document.querySelector('.layout');
+  if (!foot || !layout) return 0;
+  const footTop = foot.getBoundingClientRect().top;
+  const layoutTop = layout.getBoundingClientRect().top;
+  const gap = layoutGapPx();
+  return Math.max(0, footTop - layoutTop - narrowTopRowHeight() - gap - 2);
 }
 
 export function syncPanelHeights(): void {
@@ -103,6 +166,7 @@ export function syncPanelHeights(): void {
 }
 
 function panelContentFits(): boolean {
+  if (isNarrowViewport()) return true;
   const panel = document.querySelector<HTMLElement>('.panel-right');
   const next = panel?.querySelector<HTMLElement>('.block:not(.stats-block)');
   const stats = panel?.querySelector<HTMLElement>('.stats-block');
@@ -114,7 +178,14 @@ function panelContentFits(): boolean {
 function nextQueueFullyVisible(): boolean {
   const panel = document.querySelector('.panel-right');
   const rect = appRect();
-  if (!panel || !rect) return false;
+  if (!rect) return false;
+  if (isNarrowViewport()) {
+    const next = document.querySelector('.panel-right .block:first-child');
+    if (!next) return false;
+    const r = next.getBoundingClientRect();
+    return r.left >= rect.left - 0.5 && r.right <= rect.right + 0.5;
+  }
+  if (!panel) return false;
   const canvases = panel.querySelectorAll('.next-piece');
   for (const c of canvases) {
     const r = c.getBoundingClientRect();
@@ -196,6 +267,19 @@ export function computeFitCellSize(onApply: () => void): number {
         best = c;
         break;
       }
+    }
+  }
+
+  if (isNarrowViewport()) {
+    const budget = narrowWellHeightBudget();
+    for (let c = best + 1; c <= 80; c++) {
+      if (!tryCell(c, onApply)) break;
+      const wellH = document.getElementById('well')?.getBoundingClientRect().height ?? 0;
+      if (wellH > budget + 1) {
+        tryCell(best, onApply);
+        break;
+      }
+      best = c;
     }
   }
 

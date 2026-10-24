@@ -489,8 +489,11 @@ body {
 
   .layout {
     display: grid;
-    grid-template-columns: min-content 1fr min-content;
-    grid-template-rows: min-content min-content;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    grid-template-columns: min-content minmax(0, 1fr) min-content;
+    grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas:
       'hold next stats'
       'well well well';
@@ -507,6 +510,12 @@ body {
   .well-wrap {
     grid-area: well;
     touch-action: none;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 0;
   }
 
   .panel-right {
@@ -520,14 +529,26 @@ body {
 
   .panel-right .stats-block {
     grid-area: stats;
-    gap: 0.15rem;
+    gap: 0.2rem;
     align-self: start;
     justify-self: end;
     text-align: right;
+    min-width: 3.25rem;
+    padding-left: 0.15rem;
   }
 
   .panel-right .stats-block .stat-line {
-    gap: 0;
+    gap: 0.08rem;
+  }
+
+  .panel-right .stats-block .label {
+    font-size: 0.5625rem;
+    line-height: 1.2;
+  }
+
+  .panel-right .stats-block strong {
+    font-size: 0.8125rem;
+    line-height: 1.15;
   }
 
   .next-queue {
