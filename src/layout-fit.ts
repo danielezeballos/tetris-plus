@@ -28,12 +28,8 @@ function capPreviewForAppWidth(wellCell: number): void {
 function narrowLayoutInView(): boolean {
   const rect = appRect();
   if (!rect) return false;
-  const selectors = [
-    '.panel-left',
-    '.panel-right .block:first-child',
-    '.panel-right .stats-block',
-    '.well-wrap',
-  ];
+  const selectors = ['.panel-left', '.well-wrap', '.panel-right'];
+  let gameBottom = 0;
   for (const sel of selectors) {
     const el = document.querySelector(sel);
     if (!el) return false;
@@ -42,14 +38,11 @@ function narrowLayoutInView(): boolean {
     if (r.left < rect.left - 0.5 || r.right > rect.right + 0.5) {
       return false;
     }
+    gameBottom = Math.max(gameBottom, r.bottom);
   }
-  const well = document.getElementById('well');
   const foot = document.querySelector('.page-foot');
-  if (!well || !foot) return false;
-  if (well.getBoundingClientRect().bottom > foot.getBoundingClientRect().top + 0.5) {
-    return false;
-  }
-  return true;
+  if (!foot) return false;
+  return gameBottom <= foot.getBoundingClientRect().top + 0.5;
 }
 
 function columnsInView(): boolean {
@@ -110,7 +103,14 @@ function footerClearOfGame(): boolean {
   if (!foot || !well) return false;
   const footTop = foot.getBoundingClientRect().top;
   if (isNarrowViewport()) {
-    return footTop >= well.getBoundingClientRect().bottom - 0.5;
+    const left = document.querySelector('.panel-left');
+    const panel = document.querySelector('.panel-right');
+    const gameBottom = Math.max(
+      well.getBoundingClientRect().bottom,
+      left?.getBoundingClientRect().bottom ?? 0,
+      panel?.getBoundingClientRect().bottom ?? 0,
+    );
+    return footTop >= gameBottom - 0.5;
   }
   const panel = document.querySelector('.panel-right');
   if (!panel) return false;
@@ -125,24 +125,6 @@ function isNarrowViewport(): boolean {
   return window.matchMedia('(max-width: 639px)').matches;
 }
 
-function narrowTopRowHeight(): number {
-  const layout = document.querySelector('.layout');
-  if (!layout) return 0;
-  const layoutTop = layout.getBoundingClientRect().top;
-  let bottom = layoutTop;
-  for (const sel of [
-    '.panel-left',
-    '.panel-right .block:first-child',
-    '.panel-right .stats-block',
-  ]) {
-    const el = document.querySelector(sel);
-    if (el) {
-      bottom = Math.max(bottom, el.getBoundingClientRect().bottom);
-    }
-  }
-  return bottom - layoutTop;
-}
-
 /** Vertical space available for the 20-row well on narrow layouts. */
 function narrowWellHeightBudget(): number {
   const foot = document.querySelector('.page-foot');
@@ -151,22 +133,17 @@ function narrowWellHeightBudget(): number {
   const footTop = foot.getBoundingClientRect().top;
   const layoutTop = layout.getBoundingClientRect().top;
   const gap = layoutGapPx();
-  return Math.max(0, footTop - layoutTop - narrowTopRowHeight() - gap - 2);
+  return Math.max(0, footTop - layoutTop - gap - 2);
 }
 
 export function syncPanelHeights(): void {
   const well = document.getElementById('well');
   const panel = document.querySelector<HTMLElement>('.panel-right');
   if (!well || !panel) return;
-  if (isNarrowViewport()) {
-    panel.style.height = '';
-    return;
-  }
   panel.style.height = `${well.offsetHeight}px`;
 }
 
 function panelContentFits(): boolean {
-  if (isNarrowViewport()) return true;
   const panel = document.querySelector<HTMLElement>('.panel-right');
   const next = panel?.querySelector<HTMLElement>('.block:not(.stats-block)');
   const stats = panel?.querySelector<HTMLElement>('.stats-block');
@@ -178,14 +155,7 @@ function panelContentFits(): boolean {
 function nextQueueFullyVisible(): boolean {
   const panel = document.querySelector('.panel-right');
   const rect = appRect();
-  if (!rect) return false;
-  if (isNarrowViewport()) {
-    const next = document.querySelector('.panel-right .block:first-child');
-    if (!next) return false;
-    const r = next.getBoundingClientRect();
-    return r.left >= rect.left - 0.5 && r.right <= rect.right + 0.5;
-  }
-  if (!panel) return false;
+  if (!rect || !panel) return false;
   const canvases = panel.querySelectorAll('.next-piece');
   for (const c of canvases) {
     const r = c.getBoundingClientRect();
