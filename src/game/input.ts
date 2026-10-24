@@ -75,6 +75,15 @@ function handleAction(state: GameState, action: string): void {
   }
 }
 
+export function isEditableTarget(target: EventTarget | null): boolean {
+  if (target == null || typeof target !== 'object') return false;
+  const el = target as HTMLElement;
+  if (el.isContentEditable) return true;
+  const tag = el.tagName;
+  if (typeof tag !== 'string') return false;
+  return tag === 'INPUT' || tag === 'TEXTAREA';
+}
+
 const KEY_MAP: Record<string, string> = {
   ArrowLeft: 'left',
   ArrowRight: 'right',
@@ -140,6 +149,7 @@ function releaseHorizontal(dir: 'left' | 'right'): void {
 
 export function bindKeyboard(state: GameState): void {
   window.addEventListener('keydown', (e) => {
+    if (isEditableTarget(e.target)) return;
     let action = KEY_MAP[e.key];
     if (e.key === 'Control' && !e.repeat) {
       action = 'rotateCCW';
@@ -166,6 +176,7 @@ export function bindKeyboard(state: GameState): void {
   });
 
   window.addEventListener('keyup', (e) => {
+    if (isEditableTarget(e.target)) return;
     if (e.key === 'ArrowLeft') releaseHorizontal('left');
     if (e.key === 'ArrowRight') releaseHorizontal('right');
     if (e.key === 'ArrowDown') {

@@ -7,6 +7,7 @@ vi.mock('./audio', () => ({
 import { DAS_HORIZONTAL_MS, ARR_HORIZONTAL_MS } from './constants';
 import { createInitialState } from './engine';
 import {
+  isEditableTarget,
   inputHorizontalHeld,
   pressHorizontal,
   processHorizontalDas,
@@ -49,6 +50,19 @@ describe('horizontal input', () => {
 
     processHorizontalDas(state, 1);
     expect(state.active!.x).toBe(x1 + 1);
+  });
+
+  it('treats input, textarea, and contenteditable as typing targets', () => {
+    const input = { tagName: 'INPUT', isContentEditable: false } as HTMLElement;
+    const textarea = { tagName: 'TEXTAREA', isContentEditable: false } as HTMLElement;
+    const editable = { tagName: 'DIV', isContentEditable: true } as HTMLElement;
+    const div = { tagName: 'DIV', isContentEditable: false } as HTMLElement;
+
+    expect(isEditableTarget(input)).toBe(true);
+    expect(isEditableTarget(textarea)).toBe(true);
+    expect(isEditableTarget(editable)).toBe(true);
+    expect(isEditableTarget(div)).toBe(false);
+    expect(isEditableTarget(null)).toBe(false);
   });
 
   it('never moves two columns in one processHorizontalDas call', () => {
