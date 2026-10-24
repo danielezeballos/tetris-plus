@@ -10,7 +10,19 @@ vi.mock('./audio', () => ({
 }));
 
 import { createInitialState } from './engine';
+import { horizontalDragColumns } from './touch-input';
 import { tryMove, tryRotate } from './engine';
+
+describe('horizontalDragColumns', () => {
+  it('steps once per cell width traveled', () => {
+    expect(horizontalDragColumns(0, 20)).toBe(0);
+    expect(horizontalDragColumns(19, 20)).toBe(0);
+    expect(horizontalDragColumns(20, 20)).toBe(1);
+    expect(horizontalDragColumns(59, 20)).toBe(2);
+    expect(horizontalDragColumns(-41, 20)).toBe(-2);
+  });
+});
+
 describe('touch gestures map to game actions', () => {
   it('uses the same engine helpers as keyboard play', () => {
     const state = createInitialState();
