@@ -473,3 +473,123 @@ body {
 #hold-canvas {
   display: block;
 }
+
+.touch-hint {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  #app {
+    padding: 0.2rem 0.35rem 0.35rem;
+  }
+
+  .shell {
+    gap: 0.2rem;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: min-content 1fr min-content;
+    grid-template-rows: min-content min-content;
+    grid-template-areas:
+      'hold next stats'
+      'well well well';
+    gap: 0.25rem 0.35rem;
+    align-items: start;
+    justify-items: center;
+  }
+
+  .panel-left {
+    grid-area: hold;
+    gap: 0.25rem;
+  }
+
+  .well-wrap {
+    grid-area: well;
+    touch-action: none;
+  }
+
+  .panel-right {
+    display: contents;
+  }
+
+  .panel-right .block:first-child {
+    grid-area: next;
+    gap: 0.2rem;
+  }
+
+  .panel-right .stats-block {
+    grid-area: stats;
+    gap: 0.15rem;
+    align-self: start;
+    justify-self: end;
+    text-align: right;
+  }
+
+  .panel-right .stats-block .stat-line {
+    gap: 0;
+  }
+
+  .next-queue {
+    gap: 0.12rem;
+  }
+
+  .keyboard-hint {
+    display: none;
+  }
+
+  .touch-hint {
+    display: block;
+    font-size: 0.5625rem;
+    line-height: 1.35;
+    max-width: 100%;
+  }
+
+  .page-foot {
+    gap: 0.15rem;
+    padding-top: 0;
+  }
+
+  .foot-controls {
+    gap: 0.35rem 0.5rem;
+    font-size: 0.5625rem;
+  }
+
+  .theme-toggle {
+    font-size: 0.5625rem;
+    padding: 0.2rem 0.35rem;
+  }
+
+  .overlay-card {
+    max-width: min(100%, 18rem);
+    padding: 0.65rem;
+  }
+
+  .overlay-card:has(#leaderboards:not(.hidden)) {
+    max-width: min(100vw - 1.5rem, 20rem);
+  }
+
+  .leaderboards {
+    gap: 0.5rem 0.65rem;
+  }
+
+  .lb-list {
+    font-size: 0.625rem;
+  }
+
+  .customize-panel {
+    position: fixed;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    max-height: min(70dvh, 24rem);
+    overflow-y: auto;
+    z-index: 30;
+  }
+
+  .name-input {
+    font-size: 16px;
+  }
+}

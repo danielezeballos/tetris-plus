@@ -87,12 +87,19 @@ function footerClearOfGame(): boolean {
   return footTop >= gameBottom - 0.5;
 }
 
+function isNarrowViewport(): boolean {
+  return window.matchMedia('(max-width: 639px)').matches;
+}
+
 export function syncPanelHeights(): void {
   const well = document.getElementById('well');
   const panel = document.querySelector<HTMLElement>('.panel-right');
-  if (well && panel) {
-    panel.style.height = `${well.offsetHeight}px`;
+  if (!well || !panel) return;
+  if (isNarrowViewport()) {
+    panel.style.height = '';
+    return;
   }
+  panel.style.height = `${well.offsetHeight}px`;
 }
 
 function panelContentFits(): boolean {

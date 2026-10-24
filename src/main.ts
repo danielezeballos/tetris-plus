@@ -6,6 +6,7 @@ import {
   type GameState,
 } from './game/engine';
 import { bindKeyboard, updateInput } from './game/input';
+import { bindTouchPlay } from './game/touch-input';
 import { gameTick } from './game/tick';
 import { drawPreview, drawWell } from './game/renderer';
 import { bindCustomizePanel } from './customize';
@@ -102,7 +103,8 @@ app.innerHTML = `
       </aside>
     </main>
     <footer class="page-foot">
-      <p class="hint">Enter start · Esc pause · Arrows move · Space drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
+      <p class="hint keyboard-hint">Enter start · Esc pause · Arrows move · Space drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
+      <p class="hint touch-hint">Swipe left/right move · down soft drop · up hard drop · tap rotate</p>
       <div class="foot-controls">
         <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false"></button>
         <button type="button" id="sound-toggle" class="theme-toggle" aria-pressed="false"></button>
@@ -125,6 +127,7 @@ app.innerHTML = `
   </div>
 `;
 
+const wellWrap = document.querySelector<HTMLElement>('.well-wrap')!;
 const wellCanvas = document.querySelector<HTMLCanvasElement>('#well')!;
 const holdCanvas = document.querySelector<HTMLCanvasElement>('#hold-canvas')!;
 const nextQueue = document.querySelector<HTMLDivElement>('#next-queue')!;
@@ -418,6 +421,7 @@ overlayBtn.addEventListener('click', () => {
 });
 
 bindKeyboard(state);
+bindTouchPlay(wellWrap, () => state);
 
 let last = performance.now();
 function loop(now: number): void {
