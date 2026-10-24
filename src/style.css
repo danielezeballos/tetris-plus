@@ -497,8 +497,14 @@ body {
     gap: 0.25rem;
   }
 
-  .well-wrap {
+  #app {
     touch-action: none;
+  }
+
+  .foot-controls button,
+  .customize-panel,
+  .name-prompt:not(.hidden) {
+    touch-action: auto;
   }
 
   .panel-right {

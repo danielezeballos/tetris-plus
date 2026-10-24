@@ -127,7 +127,6 @@ app.innerHTML = `
   </div>
 `;
 
-const wellWrap = document.querySelector<HTMLElement>('.well-wrap')!;
 const wellCanvas = document.querySelector<HTMLCanvasElement>('#well')!;
 const holdCanvas = document.querySelector<HTMLCanvasElement>('#hold-canvas')!;
 const nextQueue = document.querySelector<HTMLDivElement>('#next-queue')!;
@@ -421,7 +420,7 @@ overlayBtn.addEventListener('click', () => {
 });
 
 bindKeyboard(state);
-bindTouchPlay(wellWrap, () => state);
+bindTouchPlay(app, () => state);
 
 let last = performance.now();
 function loop(now: number): void {

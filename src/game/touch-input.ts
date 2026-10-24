@@ -1,11 +1,15 @@
 import type { GameState } from './engine';
 import { hardDrop, holdPiece, tryMove, tryRotate } from './engine';
+import { isEditableTarget } from './input';
 import { getCellSize } from './renderer';
 
 const NARROW_MAX_WIDTH_PX = 639;
 const SWIPE_THRESHOLD_PX = 22;
 const TAP_MAX_MOVE_PX = 14;
 const TAP_MAX_MS = 320;
+
+const FOOTER_PLAY_BUTTONS =
+  '#theme-toggle, #sound-toggle, #customize-toggle, #support-toggle';
 
 export function isNarrowViewport(): boolean {
   return window.matchMedia(`(max-width: ${NARROW_MAX_WIDTH_PX}px)`).matches;
@@ -17,8 +21,24 @@ export function horizontalDragColumns(deltaX: number, cellWidth: number): number
   return Math.trunc(deltaX / cellWidth);
 }
 
+function isTouchPlayReserved(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  if (isEditableTarget(target)) return true;
+  if (target.closest(FOOTER_PLAY_BUTTONS)) return true;
+  if (target.closest('#customize-panel:not(.hidden)')) return true;
+  if (target.closest('#name-prompt:not(.hidden)')) return true;
+  if (
+    target.closest(
+      '.floating-chat-kofi-popup-iframe, .floating-chat-kofi-popup-iframe-mobi',
+    )
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function bindTouchPlay(
-  wellWrap: HTMLElement,
+  touchRoot: HTMLElement,
   getState: () => GameState,
 ): void {
   let startX = 0;
@@ -55,13 +75,14 @@ export function bindTouchPlay(
     peakAdy = 0;
   }
 
-  wellWrap.addEventListener(
+  touchRoot.addEventListener(
     'pointerdown',
     (e) => {
       if (!isNarrowViewport()) return;
       if (e.pointerType === 'mouse') return;
       if (!canPlay()) return;
       if (e.button !== 0) return;
+      if (isTouchPlayReserved(e.target)) return;
       tracking = true;
       activePointer = e.pointerId;
       lockedAxis = null;
@@ -71,12 +92,12 @@ export function bindTouchPlay(
       startX = e.clientX;
       startY = e.clientY;
       startT = e.timeStamp;
-      wellWrap.setPointerCapture(e.pointerId);
+      touchRoot.setPointerCapture(e.pointerId);
     },
     { passive: true },
   );
 
-  wellWrap.addEventListener(
+  touchRoot.addEventListener(
     'pointermove',
     (e) => {
       if (!tracking || e.pointerId !== activePointer || !canPlay()) return;
@@ -114,7 +135,7 @@ export function bindTouchPlay(
     tracking = false;
     activePointer = -1;
     try {
-      wellWrap.releasePointerCapture(e.pointerId);
+      touchRoot.releasePointerCapture(e.pointerId);
     } catch {
       /* already released */
     }
@@ -157,6 +178,6 @@ export function bindTouchPlay(
     resetGesture();
   };
 
-  wellWrap.addEventListener('pointerup', finish);
-  wellWrap.addEventListener('pointercancel', resetGesture);
+  touchRoot.addEventListener('pointerup', finish);
+  touchRoot.addEventListener('pointercancel', resetGesture);
 }
