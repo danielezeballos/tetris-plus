@@ -104,7 +104,7 @@ app.innerHTML = `
     </main>
     <footer class="page-foot">
       <p class="hint keyboard-hint">Enter start · Esc pause · Arrows move · Space drop · Z/Ctrl CCW · X/↑ CW · A 180° · C/Shift hold · R restart</p>
-      <p class="hint touch-hint">Swipe left/right move · down soft drop · up hard drop · tap rotate</p>
+      <p class="hint touch-hint">Swipe left/right move · down hard drop · up hold · tap rotate</p>
       <div class="foot-controls">
         <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false"></button>
         <button type="button" id="sound-toggle" class="theme-toggle" aria-pressed="false"></button>

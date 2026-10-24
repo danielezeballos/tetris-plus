@@ -1,5 +1,5 @@
 import type { GameState } from './engine';
-import { hardDrop, tryMove, tryRotate } from './engine';
+import { hardDrop, holdPiece, tryMove, tryRotate } from './engine';
 import { getCellSize } from './renderer';
 
 const NARROW_MAX_WIDTH_PX = 639;
@@ -147,8 +147,8 @@ export function bindTouchPlay(
     }
 
     if (ady >= adx) {
-      if (dy > 0) tryMove(state, 0, 1);
-      else hardDrop(state);
+      if (dy > 0) hardDrop(state);
+      else holdPiece(state);
     } else {
       const target = horizontalDragColumns(dx, getCellSize());
       applyColumnDelta(state, target);
