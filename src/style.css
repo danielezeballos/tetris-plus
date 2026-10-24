@@ -21,6 +21,32 @@
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+
+:where(
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  label,
+  summary,
+  [role='button'],
+  .primary-btn,
+  .theme-toggle,
+  .lb-retry,
+  .name-submit,
+  .customize-color-input
+):active {
+  outline: none;
+  box-shadow: none;
 }
 
 :where(
