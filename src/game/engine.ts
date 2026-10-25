@@ -20,6 +20,7 @@ import {
   SOFT_DROP_SCORE,
 } from './constants';
 import { createLineClearEffect, type LineClearEffect } from './line-clear';
+import { classifyTSpin, computeLockPoints } from './tspin';
 import { getWallKicks, targetRotation } from './srs';
 import { spawnPiece, type ActivePiece } from './tetromino';
 import { sounds } from './audio';
@@ -42,6 +43,10 @@ export interface GameState {
   lockResets: number;
   onGround: boolean;
   lineClear: LineClearEffect | null;
+  /** Last action was a successful rotation; cleared by move/drop/hold. */
+  tSpinReady: boolean;
+  /** Previous line clear was a difficult clear (for back-to-back). */
+  backToBack: boolean;
 }
 
 export function createInitialState(): GameState {
@@ -62,6 +67,8 @@ export function createInitialState(): GameState {
     lockResets: 0,
     onGround: false,
     lineClear: null,
+    tSpinReady: false,
+    backToBack: false,
   };
 }
 
@@ -95,6 +102,8 @@ export function startGame(state: GameState): void {
   state.lines = 0;
   state.gravityAccumulator = 0;
   state.lineClear = null;
+  state.tSpinReady = false;
+  state.backToBack = false;
   refreshQueue(state);
   if (!spawnFromQueue(state)) {
     state.phase = 'gameover';
@@ -109,16 +118,35 @@ export function togglePause(state: GameState): void {
   else if (state.phase === 'paused') state.phase = 'playing';
 }
 
-function applyLineClear(state: GameState, cleared: number): void {
-  if (cleared === 0) return;
-  const idx = Math.min(cleared, LINE_SCORES.length - 1);
-  state.score += LINE_SCORES[idx] * state.level;
-  state.lines += cleared;
-  sounds.lineClear(cleared);
-  const newLevel = Math.floor(state.lines / 10) + 1;
-  if (newLevel > state.level) {
-    state.level = newLevel;
-    sounds.levelUp();
+function applyLockScore(
+  state: GameState,
+  cleared: number,
+  locked: ActivePiece,
+  tSpin: 'full' | 'mini' | null,
+): void {
+  const { points, difficult } = computeLockPoints(
+    cleared,
+    locked,
+    tSpin,
+    state.level,
+    state.backToBack,
+  );
+
+  if (difficult) {
+    state.backToBack = true;
+  } else if (cleared > 0) {
+    state.backToBack = false;
+  }
+
+  state.score += points;
+  if (cleared > 0) {
+    state.lines += cleared;
+    sounds.lineClear(cleared);
+    const newLevel = Math.floor(state.lines / 10) + 1;
+    if (newLevel > state.level) {
+      state.level = newLevel;
+      sounds.levelUp();
+    }
   }
 }
 
@@ -146,16 +174,22 @@ function finishSpawnAfterLock(state: GameState, sweepOrphans = true): void {
 
 function settlePiece(state: GameState): void {
   if (!state.active) return;
-  lockPiece(state.board, state.active);
+  const locked = state.active;
+  lockPiece(state.board, locked);
   sounds.lock();
+  const tSpin =
+    state.tSpinReady && locked.kind === 'T'
+      ? classifyTSpin(state.board, locked)
+      : null;
+  state.tSpinReady = false;
   const fullRows = findFullRows(state.board);
   state.active = null;
   state.onGround = false;
+  applyLockScore(state, fullRows.length, locked, tSpin);
   if (fullRows.length === 0) {
     finishSpawnAfterLock(state);
     return;
   }
-  applyLineClear(state, fullRows.length);
   state.lineClear = createLineClearEffect(
     collectRowCells(state.board, fullRows),
     fullRows,
@@ -196,6 +230,7 @@ export function tryMove(state: GameState, dx: number, dy: number): boolean {
     state.score += SOFT_DROP_SCORE;
   }
   if (dx !== 0 || dy > 0) {
+    state.tSpinReady = false;
     state.onGround = collides(state.board, state.active, 0, 1);
   }
   if (state.onGround && (dx !== 0 || dy !== 0)) {
@@ -222,6 +257,7 @@ export function tryRotate(
     const trial = { ...piece, rotation: toRot, x: piece.x + kx, y: piece.y + ky };
     if (!collides(state.board, trial)) {
       state.active = trial;
+      state.tSpinReady = true;
       sounds.rotate();
       state.onGround = collides(state.board, trial, 0, 1);
       if (state.onGround) resetLock(state);
@@ -233,6 +269,7 @@ export function tryRotate(
 
 export function hardDrop(state: GameState): void {
   if (state.phase !== 'playing' || !state.active || state.lineClear) return;
+  state.tSpinReady = false;
   const gy = ghostY(state.board, state.active);
   const dist = gy - state.active.y;
   state.active.y = gy;
@@ -244,6 +281,7 @@ export function hardDrop(state: GameState): void {
 export function holdPiece(state: GameState): void {
   if (state.phase !== 'playing' || !state.active || !state.canHold || state.lineClear)
     return;
+  state.tSpinReady = false;
   const current = state.active.kind;
   sounds.hold();
   if (state.hold === null) {
