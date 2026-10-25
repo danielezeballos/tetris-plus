@@ -540,16 +540,21 @@ body {
 
   .panel-right .stats-block {
     text-align: right;
+    gap: 0.42rem;
+  }
+
+  .panel-right .stats-block .stat-line {
+    gap: 0.16rem;
   }
 
   .panel-right .stats-block .label {
     font-size: 0.5625rem;
-    line-height: 1.2;
+    line-height: 1.25;
   }
 
   .panel-right .stats-block strong {
     font-size: 0.8125rem;
-    line-height: 1.15;
+    line-height: 1.2;
   }
 
   .next-queue {
