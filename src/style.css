@@ -521,6 +521,7 @@ body {
 
   .panel-left {
     gap: 0.25rem;
+    padding-left: 0.5rem;
   }
 
   #app {
@@ -541,6 +542,7 @@ body {
   .panel-right .stats-block {
     text-align: right;
     gap: 0.85rem;
+    padding-right: 0.5rem;
   }
 
   .panel-right .stats-block .stat-line {
