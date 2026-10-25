@@ -13,7 +13,6 @@ import {
   COLS,
   gravityMs,
   HARD_DROP_SCORE,
-  LINE_SCORES,
   LOCK_DELAY_MS,
   MAX_LOCK_RESETS,
   NEXT_QUEUE_SIZE,

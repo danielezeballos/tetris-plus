@@ -15,7 +15,6 @@ vi.mock('./audio', () => ({
   },
 }));
 
-import { COLS } from './constants';
 import { createBoard, lockPiece } from './board';
 import {
   advanceLockDelay,
