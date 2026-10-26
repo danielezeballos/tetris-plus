@@ -521,12 +521,10 @@ body {
 
   .panel-left {
     gap: 0.25rem;
-    overflow: visible;
   }
 
-  .panel-left .block {
-    padding-left: 0.5rem;
-    margin-left: -0.5rem;
+  .panel-left .label {
+    margin-left: 4px;
   }
 
   #app {
@@ -542,18 +540,16 @@ body {
   .panel-right {
     gap: 0;
     min-width: 0;
-    overflow: visible;
   }
 
   .panel-right .stats-block {
     text-align: right;
     gap: 0.85rem;
-    padding-right: 0.5rem;
-    margin-right: -0.5rem;
   }
 
   .panel-right .stats-block .stat-line {
     gap: 0.4rem;
+    padding-right: 4px;
   }
 
   .panel-right .stats-block .label {
