@@ -521,10 +521,12 @@ body {
 
   .panel-left {
     gap: 0.25rem;
+    overflow: visible;
   }
 
   .panel-left .block {
-    transform: translateX(0.5rem);
+    padding-left: 0.5rem;
+    margin-left: -0.5rem;
   }
 
   #app {
@@ -540,12 +542,14 @@ body {
   .panel-right {
     gap: 0;
     min-width: 0;
+    overflow: visible;
   }
 
   .panel-right .stats-block {
     text-align: right;
     gap: 0.85rem;
-    transform: translateX(-0.5rem);
+    padding-right: 0.5rem;
+    margin-right: -0.5rem;
   }
 
   .panel-right .stats-block .stat-line {
